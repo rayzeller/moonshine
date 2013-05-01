@@ -1,8 +1,15 @@
+require 'time'
+require "active_support/time_with_zone"
+require 'active_support/core_ext/time/zones'
+require 'date'
 require 'moonshine/version'
 require 'mongo'
 require 'mongoid'
 
+
 module Moonshine
+  # require 'mongoid'
+  Time.zone = "Pacific Time (US & Canada)"
 
   autoload :Barrel, 'moonshine/barrel'
   autoload :Distillery, 'moonshine/distillery'
@@ -66,7 +73,7 @@ module Moonshine
 
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
   DEFAULT_STOP = Proc.new { Time.zone.now }
-  DEFAULT_STEP = 1.day ## 86400 seconds
+  DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
 
   MAP = %Q{
     function() {
