@@ -3,7 +3,6 @@ require "active_support/time_with_zone"
 require 'active_support/core_ext/time/zones'
 require 'date'
 require 'moonshine/version'
-require 'mongo'
 require 'mongoid'
 
 
