@@ -8,7 +8,7 @@ require 'mongoid'
 
 module Moonshine
   # require 'mongoid'
-  Time.zone = "Pacific Time (US & Canada)"
+  Time.zone = PACIFIC_TIME_ZONE
 
   autoload :Barrel, 'moonshine/barrel'
   autoload :Distillery, 'moonshine/distillery'
@@ -52,7 +52,24 @@ module Moonshine
       values = []
 
       Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").map_reduce(MAP, DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
-      # Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").pluck(:value).flatten.uniq.count
+        date = document['_id'].to_datetime
+        values = values + document['value']
+
+        hash[date_block] ||= 0
+        hash[date_block] = values.uniq
+
+        while (date >= date_block + step)
+          date_block = (date_block + step)
+          values = []
+        end
+      end
+      hash
+    elsif(metric == "distinct.count")
+      hash = Hash.new
+      date_block = start_time
+      values = []
+
+      Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").map_reduce(MAP, DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
         date = document['_id'].to_datetime
         values = values + document['value']
 
@@ -66,13 +83,14 @@ module Moonshine
       end
       hash
     else
-      return false
+      return []
     end
   end
 
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
+  PACIFIC_TIME_ZONE = "Pacific Time (US & Canada)"
 
   MAP = %Q{
     function() {
