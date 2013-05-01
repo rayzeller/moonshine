@@ -32,9 +32,9 @@ module Moonshine
     raise Exception if metric.nil?
     raise Exception if type.nil?
     raise Exception if key.nil?
-    raise Exception if metric == "distinct" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(Integer)
-    raise Exception if metric == "distinct.count" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(Integer)
-    raise Exception if metric == "sum" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(String)
+    raise Exception if metric == "distinct" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(Integer)
+    raise Exception if metric == "distinct.count" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(Integer)
+    raise Exception if metric == "sum" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(String)
 
     if(metric == "sum")
       # Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").sum(:value)
