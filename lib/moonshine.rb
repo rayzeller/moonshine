@@ -8,6 +8,8 @@ require 'mongoid'
 
 module Moonshine
   # require 'mongoid'
+  PACIFIC_TIME_ZONE = "Pacific Time (US & Canada)"
+  
   Time.zone = PACIFIC_TIME_ZONE
 
   autoload :Barrel, 'moonshine/barrel'
@@ -90,7 +92,6 @@ module Moonshine
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
-  PACIFIC_TIME_ZONE = "Pacific Time (US & Canada)"
 
   MAP = %Q{
     function() {
