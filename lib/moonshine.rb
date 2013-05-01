@@ -9,7 +9,7 @@ require 'mongoid'
 module Moonshine
   # require 'mongoid'
   PACIFIC_TIME_ZONE = "Pacific Time (US & Canada)"
-  
+
   Time.zone = PACIFIC_TIME_ZONE
 
   autoload :Barrel, 'moonshine/barrel'
@@ -32,6 +32,9 @@ module Moonshine
     raise Exception if metric.nil?
     raise Exception if type.nil?
     raise Exception if key.nil?
+    raise Exception if metric == "distinct" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(Integer)
+    raise Exception if metric == "distinct.count" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(Integer)
+    raise Exception if metric == "sum" && Barrel.where(:type => "#{type}_#{key}").first.is_a?(String)
 
     if(metric == "sum")
       # Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").sum(:value)
