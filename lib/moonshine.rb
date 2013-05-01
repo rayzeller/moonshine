@@ -60,13 +60,13 @@ module Moonshine
         date = document['_id'].to_datetime
         values = values + document['value']
 
-        hash[date_block] ||= 0
-        hash[date_block] = values.uniq
-
         while (date >= date_block + step)
           date_block = (date_block + step)
-          values = []
+          values = document['value']
         end
+
+        hash[date_block] ||= 0
+        hash[date_block] = values.uniq
       end
       hash
     elsif(metric == "distinct.count")
@@ -78,13 +78,15 @@ module Moonshine
         date = document['_id'].to_datetime
         values = values + document['value']
 
+        while (date >= date_block + step)
+          date_block = (date_block + step)
+          values = document['value'].uniq
+        end
+
         hash[date_block] ||= 0
         hash[date_block] = values.uniq.count
 
-        while (date >= date_block + step)
-          date_block = (date_block + step)
-          values = []
-        end
+        
       end
       hash
     else
