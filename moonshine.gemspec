@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/moonshine/version', __FILE__)
+require File.dirname(__FILE__) + '/lib/moonshine/version'
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Ray Zeller"]
   gem.email         = ["rayzeller@gmail.com"]
-  gem.description   = %q{A Cube client for Ruby (http://square.github.com/cube).}
-  gem.summary       = %q{A Cube client for Ruby (http://square.github.com/cube).}
+  gem.description   = %q{An Analytics Module).}
+  gem.summary       = %q{An Analytics Module).}
   gem.homepage      = "https://github.com/rayzeller/moonshine"
 
   gem.files         = `git ls-files`.split($\)
@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Moonshine::VERSION
 
-  gem.add_dependency "mongoid", "> 3.1.0"
+  gem.add_dependency "mongoid", "3.1.3"
 end
