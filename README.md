@@ -21,7 +21,7 @@ Moonshine.send(id: order.id,
 ```
 
 ```ruby
-Moonshine.get({:start => Time.zone.now.beginning_of_month, :stop => Time.zone.now - 2.weeks :metric => 'sum', :type => 'order', :key => 'total'})
+Moonshine.get({:start => Time.zone.now.beginning_of_month, :stop => Time.zone.now - 2.weeks, :metric => 'sum', :type => 'order', :key => 'total'})
 ```
 
 returns:
