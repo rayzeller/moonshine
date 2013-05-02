@@ -5,17 +5,34 @@ require 'date'
 require 'moonshine/version'
 require 'mongoid'
 
-module ActiveRecord
-  class Base
-    def to_moonshine
-      { 
-        :type => self.class.to_s,
-        :data => {
-            :id => self.id
-          }
-        }
+module ActiveModel::MoonshineSupport
+  extend ActiveSupport::Concern
+
+  module ClassMethods #:nodoc:
+    if "".respond_to?(:safe_constantize)
+      def fermenter
+        "#{self.name}Fermenter".safe_constantize
+      end
+    else
+      def fermenter
+        begin
+          "#{self.name}Fermenter".constantize
+        rescue NameError => e
+          raise unless e.message =~ /uninitialized constant/
+        end
+      end
     end
   end
+
+  # Returns a model serializer for this object considering its namespace.
+  def moonshine
+    self.class.fermenter
+  end
+
+end
+
+ActiveSupport.on_load(:active_record) do
+  include ActiveModel::MoonshineSupport
 end
 
 module Moonshine
@@ -26,6 +43,7 @@ module Moonshine
 
   autoload :Barrel, 'moonshine/barrel'
   autoload :Distillery, 'moonshine/distillery'
+  autoload :Fermenter, 'moonshine/fermenter'
 
   def self.checksum(object)
     object.to_moonshine
