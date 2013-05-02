@@ -5,7 +5,7 @@ require 'date'
 require 'moonshine/version'
 require 'mongoid'
 
-module ActiveModel
+module ActiveRecord
   class Base
     def to_moonshine
       { 
