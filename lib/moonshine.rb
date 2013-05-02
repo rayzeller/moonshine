@@ -25,7 +25,7 @@ module ActiveModel::MoonshineSupport
   end
 
   # Returns a model serializer for this object considering its namespace.
-  def moonshine
+  def fermenter
     self.class.fermenter
   end
 
