@@ -5,6 +5,18 @@ require 'date'
 require 'moonshine/version'
 require 'mongoid'
 
+module ActiveModel
+  class Base
+    def to_moonshine
+      { 
+        :type => self.class.to_s,
+        :data => {
+            :id => self.id
+          }
+        }
+    end
+  end
+end
 
 module Moonshine
   # require 'mongoid'
@@ -14,6 +26,10 @@ module Moonshine
 
   autoload :Barrel, 'moonshine/barrel'
   autoload :Distillery, 'moonshine/distillery'
+
+  def self.checksum(object)
+    object.to_moonshine
+  end
 
   def self.send(options = {})
     Distillery.create(options)
