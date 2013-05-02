@@ -94,6 +94,12 @@ module Moonshine
     end
   end
 
+  def self.reset
+    #USE DB Refresher, and make this method private maybe##
+    Distillery.destroy_all
+    Barrel.destroy_all
+  end
+
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
