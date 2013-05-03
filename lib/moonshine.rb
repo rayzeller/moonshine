@@ -4,6 +4,8 @@ require 'active_support/core_ext/time/zones'
 require 'date'
 require 'moonshine/version'
 require 'mongoid'
+require 'active_record'
+
 
 module ActiveModel::MoonshineSupport
   extend ActiveSupport::Concern
@@ -44,6 +46,7 @@ module Moonshine
   autoload :Barrel, 'moonshine/barrel'
   autoload :Distillery, 'moonshine/distillery'
   autoload :Fermenter, 'moonshine/fermenter'
+  autoload :Observer, 'moonshine/observer'
 
   def self.checksum(object)
     object.to_moonshine

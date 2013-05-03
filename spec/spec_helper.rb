@@ -1,13 +1,19 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
-MODELS = File.join(File.dirname(__FILE__), "../lib/moonshine")
-puts MODELS
+LIB = File.join(File.dirname(__FILE__), "../lib/moonshine")
+$LOAD_PATH.unshift(LIB)
+
+MODELS = File.join(File.dirname(__FILE__), "models")
 $LOAD_PATH.unshift(MODELS)
+
+FERMENTERS = File.join(File.dirname(__FILE__), "fermenters")
+$LOAD_PATH.unshift(FERMENTERS)
 
 require "mongoid"
 require "rspec"
 require "moonshine"
+require "active_record"
 
 # These environment variables can be set if wanting to test against a database
 # that is not on the local machine.
@@ -57,6 +63,16 @@ Dir[ File.join(MODELS, "*.rb") ].sort.each do |file|
   autoload name.camelize.to_sym, name
 end
 
+Dir[ File.join(LIB, "*.rb") ].sort.each do |file|
+  name = File.basename(file, ".rb")
+  autoload name.camelize.to_sym, name
+end
+
+Dir[ File.join(FERMENTERS, "*.rb") ].sort.each do |file|
+  name = File.basename(file, ".rb")
+  autoload name.camelize.to_sym, name
+end
+
 module Rails
   class Application
   end
@@ -67,12 +83,31 @@ module MyApp
   end
 end
 
+ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
+ActiveRecord::Migration.create_table :orders do |t|
+  t.string :store_id
+  t.string :user_id
+  t.integer :total
+  t.integer :subtotal
+  t.integer :sales_tax
+  t.integer :calc_swipe
+  t.integer :calc_cc_charge
+  t.timestamps
+end
+
 RSpec.configure do |config|
 
   # Drop all collections and clear the identity map before each spec.
   config.before(:each) do
     Mongoid.purge!
     Mongoid::IdentityMap.clear
+  end
+
+  config.around do |example|
+    ActiveRecord::Base.transaction do
+      example.run
+      raise ActiveRecord::Rollback
+    end
   end
 
   # On travis we are creating many different databases on each test run. We

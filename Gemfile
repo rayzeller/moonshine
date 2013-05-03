@@ -4,4 +4,3 @@ gemspec
 
 gem "rake"
 gem "rspec", "~> 2.13"
-
