@@ -5,19 +5,33 @@ Analytics Module
 
 This doesn't work yet.  Just getting the code started.  Will be adding dependencies and crap soon.
 
+Define a config file for your Model in app/fermenters:
+```ruby
+class OrderFermenter < Moonshine::Fermenter
+
+  type 'order'
+  time :created_at
+
+  data :user_id, :store_id, :swipe_fee, :cc_charge
+  data_point :sales_tax, :key => :tax
+  data_point :total
+  data_point :subtotal
+
+  def swipe_fee
+    object.calc_swipe 
+  end
+
+  def cc_charge
+    object.calc_cc_charge
+  end
+
+end
+```
 
 Bare bones example:
 ```ruby
-Moonshine.send(id: order.id,
-      :type => 'order',
-      :time => order.created_at.utc,
-      :data => {
-        :user_id => "#{order.user_id}", 
-        :store_id => "#{order.store_id}", 
-        :total => order.total,
-        :tax => order.sales_tax,
-      }
-    )
+o = OrderFermenter.new(o)
+Moonshine.send(o.as_json)
 ```
 
 ```ruby
