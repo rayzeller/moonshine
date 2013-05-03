@@ -28,11 +28,12 @@ class OrderFermenter < Moonshine::Fermenter
 end
 ```
 
-Bare bones example:
+Include this in your model:
 ```ruby
-o = OrderFermenter.new(o)
-Moonshine.send(o.as_json)
+include Moonshine::Observer
 ```
+
+and let the magic happen!!
 
 ```ruby
 Moonshine.get({:start => Time.zone.now.beginning_of_month, :stop => Time.zone.now - 2.weeks, :metric => 'sum', :type => 'order', :key => 'total'})
