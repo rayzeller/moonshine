@@ -28,6 +28,10 @@ module Moonshine
         self._type = t
       end
 
+      def get_type
+        self._type
+      end
+
       def get_time
         self._time
       end
@@ -100,6 +104,15 @@ module Moonshine
       hash[:time] = time
       hash[:type] = type
       hash
+    end
+
+    def to_s(options = {})
+      return nil if @object.nil?
+
+      class_name = self.class.name.demodulize.underscore.sub(/_fermenter$/, '') unless self.class.name.blank?
+      self._type ||= class_name
+
+      "#{data}-#{time}-#{type}"
     end
 
   end
