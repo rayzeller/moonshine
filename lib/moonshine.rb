@@ -57,82 +57,67 @@ module Moonshine
     Distillery.create(options)
   end
 
-  def self.get(options = {})
+  def self.bootleg(options = {})
     ## TODO validations ##
     start_time = options[:start].present? ? options[:start].in_time_zone("Pacific Time (US & Canada)") : DEFAULT_START.call
     stop_time = options[:stop].present? ? options[:stop].in_time_zone("Pacific Time (US & Canada)") : DEFAULT_STOP.call
-    step = options[:step].present? ? options[:step] : DEFAULT_STEP
-    metric = options[:metric]
+    step = options[:step].present? ? options[:step] : DEFAULT_STEP ## HMMMMMMM -- all time??? -- comeback to this
+    
     type = options[:type]
     key = options[:key]
 
+    ## distinct comes later
+    metric = options[:metric] ## sum, count
+
+    groups = options[:groups]
+    filters = options[:filters]
+
+    raise Exception if type.nil?
+
+    ## automatically precalculate date fields, include data field
+
+    project_hash = {"$project" => 
+      {
+        "year"    => { "$year" => "$time"}, "month" => { "$month" => "$time"},
+        "day"   => { "$dayOfMonth" => "$time"}, "data" => "$data"      }
+    }
+
+    ##default group by day
+
+    group_hash = {"$group" => 
+      {
+        "_id"    => { "year" => "$year", "month" => "$month", "day" => "$day"},
+      }
+    }
+
+    sort_hash =  { "$sort" => { _id: 1 } }
+    ## sum up, or count stuff ##
+    group_hash["$group"]["metric"] = {"$sum" => "$data.#{key.to_s}"} if metric == "sum"
+    group_hash["$group"]["metric"] = {"$sum" => 1} if metric == "count"
+
+    filter_hash = Hash.new
+    filter_hash["time"] = {"$gte" => start_time, "$lt" => stop_time}
+
+    filters.each do |filter_key, filter_value|
+      # validate that data contains this filter
+      filter_hash["data.#{filter_key.to_s}"] = filter_value.is_a?(Array) ? {"$gte" => filter_value[0], "$lte" => filter_value[1]} : filter_value
+    end
+    filter_hash["type"] = type
+
+    match_hash = {"$match" => filter_hash } if filter_hash.present?
+
     raise Exception if start_time > stop_time
     raise Exception if metric.nil?
-    raise Exception if type.nil?
-    raise Exception if key.nil?
-    # raise Exception if metric == "distinct" && Barrel.where(:e => type).first.pluck('d.#{key}').is_a?(Fixnum)
-    # raise Exception if metric == "distinct.count" && Barrel.where(:e => type).first.value.is_a?(Fixnum)
-    # raise Exception if metric == "sum" && Barrel.where(:e =>type).first.value.is_a?(String)
 
-    if(metric == "sum")
-      # Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").sum(:value)
-      hash = Hash.new
-      date_block = start_time
+    opts = Array.new
+    opts.push(match_hash) if match_hash.present?
+    opts.push(project_hash) if project_hash.present?
+    opts.push(group_hash) if group_hash.present?
+    opts.push(sort_hash) if sort_hash.present?
+    puts opts
 
-      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), REDUCE).out(replace: "mr-results").each do |document|
-        date = document['_id'].to_datetime
-        count = document['value']
-        while (date >= date_block + step)
-          date_block = (date_block + step)
-        end
-        hash[date_block] ||= 0
-        hash[date_block] = hash[date_block] + count
-      end
-      hash
-    elsif(metric == "distinct")
-      hash = Hash.new
-      date_block = start_time
-      values = []
-      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
-        date = document['_id'].to_datetime
-        val = document['value'].is_a?(String) ? [document['value']] : document['value']
-        puts val
-        values = values + val
-
-        while (date >= date_block + step)
-          date_block = (date_block + step)
-          values = val
-        end
-
-        hash[date_block] ||= 0
-        hash[date_block] = values.uniq
-      end
-      hash
-    elsif(metric == "distinct.count")
-      hash = Hash.new
-      date_block = start_time
-      values = []
-
-      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
-        date = document['_id'].to_datetime
-        val = document['value'].is_a?(String) ? [document['value']] : document['value']
-
-        values = values + val
-
-        while (date >= date_block + step)
-          date_block = (date_block + step)
-          values = val.uniq
-        end
-
-        hash[date_block] ||= 0
-        hash[date_block] = values.uniq.count
-
-        
-      end
-      hash
-    else
-      return []
-    end
+    hash = Distillery.collection.aggregate(opts)
+    hash
   end
 
   def self.reset
@@ -144,40 +129,6 @@ module Moonshine
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
-
-  def self.summed_map(key)
-    %Q{
-      function() {
-        emit(new Date(this.t.getFullYear(), this.t.getMonth(), this.t.getDate()), this.d.#{key});
-      }
-    }
-  end
-
-  MAP = %Q{
-    function() {
-      emit(new Date(this.year, this.timestamp.getMonth(), this.day), this.value);
-    }
-  }
-
-  REDUCE = %Q{
-    function(key, values) {
-      var result = { value: 0 };
-      values.forEach(function(value) {
-        result.value += value;
-      });
-      return result;
-    }
-  }
-
-  DISTINCT_REDUCE = %Q{
-    function(key, values) {
-      var result = { value: [] };
-      values.forEach(function(v) {
-        result.value.push(v);
-      });
-      return result;
-    }
-  }
 
   
 
