@@ -2,7 +2,7 @@ module Moonshine
   module Observer
     extend ActiveSupport::Concern
     included do
-      after_create :ferment
+      after_commit :ferment, :on => :create
     end
     module InstanceMethods
       def ferment

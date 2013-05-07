@@ -14,6 +14,7 @@ require "mongoid"
 require "rspec"
 require "moonshine"
 require "active_record"
+require "database_cleaner"
 
 # These environment variables can be set if wanting to test against a database
 # that is not on the local machine.
@@ -97,31 +98,19 @@ end
 
 RSpec.configure do |config|
 
-  # Drop all collections and clear the identity map before each spec.
+  config.before(:suite) do
+    DatabaseCleaner[:active_record].strategy = :deletion
+    DatabaseCleaner[:mongoid].strategy = :truncation
+    DatabaseCleaner.clean
+  end
+   
   config.before(:each) do
-    Mongoid.purge!
-    Mongoid::IdentityMap.clear
+    DatabaseCleaner.start
   end
-
-  config.around do |example|
-    ActiveRecord::Base.transaction do
-      example.run
-      raise ActiveRecord::Rollback
-    end
+   
+  config.after(:each) do
+    DatabaseCleaner.clean
   end
-
-  # On travis we are creating many different databases on each test run. We
-  # drop the database after the suite.
-  config.after(:suite) do
-    if ENV["CI"]
-      Mongoid::Threaded.sessions[:default].drop
-    end
-  end
-
-  # Filter out MongoHQ specs if we can't connect to it.
-  config.filter_run_excluding(config: ->(value){
-    return true if value == :mongohq && !mongohq_connectable?
-  })
 end
 
 ActiveSupport::Inflector.inflections do |inflect|

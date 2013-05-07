@@ -96,7 +96,7 @@ module Moonshine
       Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
         date = document['_id'].to_datetime
         val = document['value'].is_a?(String) ? [document['value']] : document['value']
-
+        puts val
         values = values + val
 
         while (date >= date_block + step)
@@ -172,8 +172,8 @@ module Moonshine
   DISTINCT_REDUCE = %Q{
     function(key, values) {
       var result = { value: [] };
-      values.forEach(function(value) {
-        result.value.push(value);
+      values.forEach(function(v) {
+        result.value.push(v);
       });
       return result;
     }

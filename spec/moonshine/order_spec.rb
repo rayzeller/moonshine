@@ -2,7 +2,6 @@ require "spec_helper"
 
 describe Order do
   describe "#create order" do
-
     let(:order) do
       Order.create(:user_id  => "user",
         :store_id => "store",

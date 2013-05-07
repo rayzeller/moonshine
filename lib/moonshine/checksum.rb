@@ -1,9 +1,11 @@
 module Moonshine
   module Checksum
     extend ActiveSupport::Concern
+    
     included do
       scope :sent_to_moonshine, lambda { |time_attr, start, stop| where("#{time_attr} >= ? AND #{time_attr} <= ?", start, stop) }
     end
+
     module ClassMethods
 
       def checksum(start = Time.zone.now, stop = Time.zone.now)
