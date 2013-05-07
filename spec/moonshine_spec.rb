@@ -23,8 +23,8 @@ describe Moonshine do
     it "distinct should correctly do some stuff" do
       options = {:start => JAN_1, :step => 1.day, :type => 'order'}
       hash = Moonshine.get(options.merge(:metric => 'distinct', :key => 'ordered_from'))
-      expect(hash[JAN_1]).to eq([DISTINCT_VALUES[0]] )
-      expect(hash[JAN_2]).to eq([DISTINCT_VALUES[1]] )
+      expect(hash[JAN_1]).to eq([DISTINCT_VALUES[0]])
+      expect(hash[JAN_2]).to eq([DISTINCT_VALUES[1]])
     end
 
     it "distinct count should correctly do some stuff" do

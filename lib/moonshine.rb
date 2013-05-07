@@ -47,6 +47,7 @@ module Moonshine
   autoload :Distillery, 'moonshine/distillery'
   autoload :Fermenter, 'moonshine/fermenter'
   autoload :Observer, 'moonshine/observer'
+  autoload :Checksum, 'moonshine/checksum'
 
   def self.checksum(object)
     object.to_moonshine
@@ -69,16 +70,16 @@ module Moonshine
     raise Exception if metric.nil?
     raise Exception if type.nil?
     raise Exception if key.nil?
-    raise Exception if metric == "distinct" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(Integer)
-    raise Exception if metric == "distinct.count" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(Integer)
-    raise Exception if metric == "sum" && Barrel.where(:type => "#{type}_#{key}").first.value.is_a?(String)
+    # raise Exception if metric == "distinct" && Barrel.where(:e => type).first.pluck('d.#{key}').is_a?(Fixnum)
+    # raise Exception if metric == "distinct.count" && Barrel.where(:e => type).first.value.is_a?(Fixnum)
+    # raise Exception if metric == "sum" && Barrel.where(:e =>type).first.value.is_a?(String)
 
     if(metric == "sum")
       # Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").sum(:value)
       hash = Hash.new
       date_block = start_time
 
-      Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").map_reduce(MAP, REDUCE).out(replace: "mr-results").each do |document|
+      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), REDUCE).out(replace: "mr-results").each do |document|
         date = document['_id'].to_datetime
         count = document['value']
         while (date >= date_block + step)
@@ -92,14 +93,15 @@ module Moonshine
       hash = Hash.new
       date_block = start_time
       values = []
-
-      Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").map_reduce(MAP, DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
+      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
         date = document['_id'].to_datetime
-        values = values + document['value']
+        val = document['value'].is_a?(String) ? [document['value']] : document['value']
+
+        values = values + val
 
         while (date >= date_block + step)
           date_block = (date_block + step)
-          values = document['value']
+          values = val
         end
 
         hash[date_block] ||= 0
@@ -111,13 +113,15 @@ module Moonshine
       date_block = start_time
       values = []
 
-      Barrel.between({:timestamp => start_time..stop_time}).where(:type => "#{type}_#{key}").map_reduce(MAP, DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
+      Barrel.between({:t => start_time..stop_time}).where(:e => type).map_reduce(summed_map(key), DISTINCT_REDUCE).out(replace: "mr-results").each do |document|
         date = document['_id'].to_datetime
-        values = values + document['value']
+        val = document['value'].is_a?(String) ? [document['value']] : document['value']
+
+        values = values + val
 
         while (date >= date_block + step)
           date_block = (date_block + step)
-          values = document['value'].uniq
+          values = val.uniq
         end
 
         hash[date_block] ||= 0
@@ -141,6 +145,14 @@ module Moonshine
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
 
+  def self.summed_map(key)
+    %Q{
+      function() {
+        emit(new Date(this.t.getFullYear(), this.t.getMonth(), this.t.getDate()), this.d.#{key});
+      }
+    }
+  end
+
   MAP = %Q{
     function() {
       emit(new Date(this.year, this.timestamp.getMonth(), this.day), this.value);
@@ -161,7 +173,7 @@ module Moonshine
     function(key, values) {
       var result = { value: [] };
       values.forEach(function(value) {
-        result.value = result.value.concat(value);
+        result.value.push(value);
       });
       return result;
     }

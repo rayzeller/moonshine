@@ -1,40 +1,27 @@
 module Moonshine
   class Barrel
     include Mongoid::Document
+    # embeds_many :data_points
 
     def self.hooks(d = Distillery.new)
       ## make this faster ##
-      time = d['time'].in_time_zone("Pacific Time (US & Canada)").beginning_of_day
-      year = time.beginning_of_year.strftime("%Y")
-      month = time.beginning_of_month.strftime("%m")
-      day = time.beginning_of_day.strftime("%d")
-      d.data.each do |data_key, data_value|
-        self.increment_sum(time, year, month, day, data_key, data_value, d.type) if data_value.is_a?(Integer)
-        self.add_distinct_values(time, year, month, day, data_key, data_value, d.type) if data_value.is_a?(String)
-      end
+      time = d['time'].in_time_zone("Pacific Time (US & Canada)")
+      year = time.beginning_of_year
+      month = time.beginning_of_month
+      day = time.beginning_of_day
+      hour = time.beginning_of_hour
+      b = Barrel.create(
+          :times => {
+            :y => year,
+            :m => month,
+            :d => day,
+            :h => hour },
+          :e => d.type,
+          :t => time
+          )
+      b.update_attributes(:d => d.data)
+      b.save
+      # puts Barrel.collection.find(:_id => b['_id']).first.to_s
     end
-
-    private
-      def self.increment_sum(timestamp, year, month, day, data_key, data_value, type)
-        b = Barrel.find_or_create_by(
-          :timestamp => timestamp,
-          :year => year,
-          :month => month,
-          :day => day,
-          :type => "#{type}_#{data_key.to_s}")
-        b.inc(:value, data_value)
-        b.save
-      end
-
-      def self.add_distinct_values(timestamp, year, month, day, data_key, data_value, type)
-        b = Barrel.find_or_create_by(
-          :timestamp => timestamp,
-          :year => year,
-          :month => month,
-          :day => day,
-          :type => "#{type}_#{data_key.to_s}")
-        b.add_to_set(:value, data_value)
-        b.save
-      end
   end
 end

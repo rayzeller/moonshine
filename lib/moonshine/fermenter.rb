@@ -28,6 +28,10 @@ module Moonshine
         self._type = t
       end
 
+      def get_time
+        self._time
+      end
+
       def time(t)
         self._time = t
       end
