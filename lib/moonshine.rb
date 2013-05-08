@@ -97,7 +97,7 @@ module Moonshine
     group_hash["$group"]["metric"] = {"$sum" => 1} if metric == "count"
 
     filter_hash = Hash.new
-    filter_hash["time"] = {"$gte" => start_time, "$lte" => stop_time}
+    filter_hash["time"] = {"$gte" => start_time.utc, "$lte" => stop_time.utc}
 
     filters.each do |filter_key, filter_value|
       # validate that data contains this filter
