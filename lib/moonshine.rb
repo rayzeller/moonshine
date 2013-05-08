@@ -75,7 +75,7 @@ module Moonshine
 
     raise Exception if type.nil?
 
-    return pull_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
+    # return pull_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     ## automatically precalculate date fields, include data field
 
     project_hash = {"$project" => 
