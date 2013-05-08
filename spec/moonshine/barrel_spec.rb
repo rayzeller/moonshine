@@ -13,7 +13,7 @@ describe Moonshine::Barrel do
           :ordered_from => "xavier", 
           :total => 500
         },
-        :tags => []
+        :tags => ['test']
       }
     end
 
@@ -25,27 +25,28 @@ describe Moonshine::Barrel do
       Moonshine.send(send_data)
     end
 
-    it "Barrel contains 1 ordered_from_value" do
-      expect(Moonshine::Barrel.where(:times => {
-          :y => timestamp.beginning_of_year,
-          :m => timestamp.beginning_of_month,
-          :d => timestamp.beginning_of_day,
-          :h => timestamp.beginning_of_hour},
-          :e => send_data[:type],
-          :t => timestamp,
-          'd.ordered_from' => send_data[:data][:ordered_from].to_s).count).to eq(1)
+    it "Barrel updates the month counter" do
+        tag = ''
+        type = send_data[:type]
+        id_monthly = "#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
+        day_of_month = timestamp.day
+        expect(Moonshine::Barrel.where('monthly._id' => id_monthly)
+          .where('monthly.meta.time' => timestamp.beginning_of_month.utc)
+          .where('monthly.meta.tag' => tag)
+          .where('monthly.meta.type' => type)
+          .where("monthly.daily.#{day_of_month}" => 1).count).to eq(1)
     end
 
-    it "Barrel contains 1 total value" do
-
-    expect(Moonshine::Barrel.where(:times => {
-          :y => timestamp.beginning_of_year,
-          :m => timestamp.beginning_of_month,
-          :d => timestamp.beginning_of_day,
-          :h => timestamp.beginning_of_hour},
-          :e => "order",
-          :t => timestamp,
-          'd.total' => send_data[:data][:total]).count).to eq(1)
+     it "Barrel has updated the month counter for our tag" do
+        tag = 'test'
+        type = send_data[:type]
+        id_monthly = "#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
+        day_of_month = timestamp.day
+        expect(Moonshine::Barrel.where('monthly._id' => id_monthly)
+          .where('monthly.meta.time' => timestamp.beginning_of_month.utc)
+          .where('monthly.meta.tag' => tag)
+          .where('monthly.meta.type' => type)
+          .where("monthly.daily.#{day_of_month}" => 1).count).to eq(1)
     end
 
   end

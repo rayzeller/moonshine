@@ -14,16 +14,16 @@ describe Order do
     end
 
     it "order gets sent to barrel" do
-      timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
-      expect(Moonshine::Barrel.where(:times => {
-          :y => timestamp.beginning_of_year,
-          :m => timestamp.beginning_of_month,
-          :d => timestamp.beginning_of_day,
-          :h => timestamp.beginning_of_hour,
-        },
-        :t => timestamp,
-        :e => "order",
-        'd.swipe_fee' => 5).count).to eq(1)
+        tag = ''
+        type = 'order'
+        timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
+        id_monthly = "#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
+        day_of_month = timestamp.day
+        expect(Moonshine::Barrel.where('monthly._id' => id_monthly)
+          .where('monthly.meta.time' => timestamp.beginning_of_month.utc)
+          .where('monthly.meta.tag' => tag)
+          .where('monthly.meta.type' => type)
+          .where("monthly.daily.#{day_of_month}" => 1).count).to eq(1)
     end
   end
 end
