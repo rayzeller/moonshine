@@ -2,7 +2,8 @@ module Moonshine
   class Barrel
     include Mongoid::Document
 
-    index({ 'monthly._id' => 1, 'monthly.meta.type' => 1, 'monthly.meta.time' => 1, 'monthly.meta.tag' => 1 })
+    index({'monthly.meta.time' => 1, 'monthly.meta.type' => 1, 'monthly.meta.tag' => 1})
+    index({'monthly._id' => 1})
 
     #####
     #
@@ -50,16 +51,16 @@ module Moonshine
         id_monthly = "#{time.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = time.day
         b = Barrel.find_or_create_by({:monthly => {
-            :_id => id_monthly,
-            :meta => {
-              :time => time.beginning_of_month.utc,
-              :type => type,
-              :tag => tag
-            }
+            :_id => id_monthly#,
+            # :meta => {
+            #   :time => time.beginning_of_month.utc,
+            #   :type => type,
+            #   :tag => tag
+            # }
           }
         })
         Barrel.collection.find({:_id => b._id}).upsert('$inc' => {
-                "monthly.daily.#{day_of_month}" => 1} )
+         "monthly.daily.#{day_of_month}" => 1}, '$set' => {'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag}})
 
         
       end
