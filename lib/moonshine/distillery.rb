@@ -2,8 +2,23 @@ module Moonshine
   class Distillery
     include Mongoid::Document
 
+    #index "time" => 1
+    #index "type" => 1
+    #cant index :data since it contains dynamic data so might need to move certain stuff to a different table
+
     after_create :hooks
 
+    ########
+    #
+    # Distillery is the first repository for events
+    #
+    # Queries for sum and totals of data over time are pulled from this collection
+    #
+    # # # # #  #
+
+    # returns a unique key for an event type, with the intent to match the key of the
+    #   checksum_key of the event's fermenter
+    #
     def self.checksum_key(type)
       checksum = ''
       scoped = self.where(:type => type).asc(:time)
@@ -18,10 +33,12 @@ module Moonshine
     end
 
     protected
+      # hooks allow post-processing of data for multiple types of queries
       def hooks
         Barrel.hooks(self)
       end
 
+      # JSON representation of the distillery object... same as what the fermenter sends to it
       def as_json
         hash = {}
         hash[:data] = self.data

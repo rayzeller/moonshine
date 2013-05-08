@@ -1,8 +1,22 @@
 module Moonshine
   class Barrel
     include Mongoid::Document
-    # embeds_many :data_points
 
+    #####
+    #
+    # Plans for Barrel
+    #
+    # # Unique value aggregator
+    #
+    # # Will aggregate values per day
+    # # Unique users / day - per store or over all values
+    # # Unique stores / day
+    #
+    # Maybe implement caching or a capped collection
+    # 
+    # Allow a way in fermenter for user to specify which values this can happen with
+    #
+    #####################
     def self.hooks(d = Distillery.new)
       ## make this faster ##
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
