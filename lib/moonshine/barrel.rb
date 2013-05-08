@@ -2,7 +2,7 @@ module Moonshine
   class Barrel
     include Mongoid::Document
 
-    index({ 'monthly.meta.type' => 1, 'monthly.meta.time' => 1, 'monthly.meta.sorted_tags' => 1 })
+    index({ 'monthly._id' => 1, 'monthly.meta.type' => 1, 'monthly.meta.time' => 1, 'monthly.meta.tag' => 1 })
 
     #####
     #
@@ -53,8 +53,8 @@ module Moonshine
             :_id => id_monthly,
             :meta => {
               :time => time.beginning_of_month.utc,
-              :tag => tag,
-              :type => type
+              :type => type,
+              :tag => tag
             }
           }
         })
