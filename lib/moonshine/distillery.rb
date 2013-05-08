@@ -35,6 +35,7 @@ module Moonshine
     protected
       # hooks allow post-processing of data for multiple types of queries
       def hooks
+        # puts self.as_json
         Barrel.hooks(self)
       end
 
@@ -44,6 +45,8 @@ module Moonshine
         hash[:data] = self.data
         hash[:time] = self.time
         hash[:type] = self.type
+        hash[:tags] = self.tags
+
         hash
       end
 

@@ -66,6 +66,8 @@ module Moonshine
     type = options[:type]
     key = options[:key]
 
+    tags = options[:tags].present? ? options[:tags] : []
+
     ## distinct comes later
     metric = options[:metric] ## sum, count
 
@@ -79,7 +81,7 @@ module Moonshine
     project_hash = {"$project" => 
       {
         "year"    => { "$year" => "$time"}, "month" => { "$month" => "$time"},
-        "day"   => { "$dayOfMonth" => "$time"}, "data" => "$data"      }
+        "day"   => { "$dayOfMonth" => "$time"}, "data" => "$data", "tags" => "$tags"      }
     }
 
     ##default group by day
@@ -103,6 +105,8 @@ module Moonshine
       filter_hash["data.#{filter_key.to_s}"] = filter_value.is_a?(Array) ? {"$gte" => filter_value[0], "$lte" => filter_value[1]} : filter_value
     end
     filter_hash["type"] = type
+    tag_hash = {"tags" => {"$all" => tags} }
+    filter_hash.merge(tag_hash) if !tags.empty?
 
     match_hash = {"$match" => filter_hash } if filter_hash.present?
 
@@ -114,7 +118,7 @@ module Moonshine
     opts.push(project_hash) if project_hash.present?
     opts.push(group_hash) if group_hash.present?
     opts.push(sort_hash) if sort_hash.present?
-    puts opts
+    # puts opts
 
     hash = Distillery.collection.aggregate(opts)
     hash

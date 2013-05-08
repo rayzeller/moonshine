@@ -9,7 +9,8 @@ describe Moonshine do
     DISTINCT_VALUES = ["xavier", "shinaynay"]
     let(:send_data) do
       {
-        :type => 'order'
+        :type => 'order',
+        :tags => []
       }
     end
 
@@ -44,8 +45,8 @@ describe Moonshine do
 
     it "sum should correctly do some stuff" do
       options = {:start => JAN_1, :step => 1.day, :type => 'order', :filters => {:ordered_from => "xavier"}}
-      hash = Moonshine.bootleg(options.merge(:metric => 'sum', :key => 'total'))
-      puts hash
+      hash = Moonshine.bootleg(options.merge(:metric => 'sum', :key => 'total', :tags => ['penis']))
+      # puts hash
     end
 
 

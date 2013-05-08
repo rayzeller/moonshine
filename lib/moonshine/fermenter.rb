@@ -1,12 +1,20 @@
 module Moonshine
   class Fermenter
+    ### TODO
+    #
+    #  add support for associations
+    #
+    # # # # # # # 
+
     DEFAULT_TIME = :created_at
 
     class_attribute :_data
     class_attribute :_type
     class_attribute :_time
+    class_attribute :_tags
 
     self._data = {}
+    self._tags = {}
     self._time = DEFAULT_TIME
 
     class << self
@@ -26,6 +34,10 @@ module Moonshine
 
       def type(t)
         self._type = t
+      end
+
+      def tag(name, options = {})
+        self._tags = self._tags.merge(name => options[:if]) if options[:if].is_a?(Proc)
       end
 
       def get_type
@@ -69,6 +81,14 @@ module Moonshine
       self._type
     end
 
+    def tags
+      tags = []
+      _tags.each do |name, block|
+        tags << name.to_s if (block.call(object) == true)
+      end
+      tags
+    end
+
     def time
       begin
         object.send self._time
@@ -103,6 +123,7 @@ module Moonshine
       hash[:data] = data
       hash[:time] = time
       hash[:type] = type
+      hash[:tags] = tags
       hash
     end
 

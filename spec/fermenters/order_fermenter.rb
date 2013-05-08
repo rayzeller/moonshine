@@ -8,6 +8,10 @@ class OrderFermenter < Moonshine::Fermenter
   data_point :total
   data_point :subtotal
 
+  tag :real, :if => Proc.new { |object| true }
+
+  
+
   def swipe_fee
     object.calc_swipe 
   end
@@ -15,5 +19,6 @@ class OrderFermenter < Moonshine::Fermenter
   def cc_charge
     object.calc_cc_charge
   end
+
 
 end

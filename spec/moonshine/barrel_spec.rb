@@ -12,7 +12,8 @@ describe Moonshine::Barrel do
         :data => {
           :ordered_from => "xavier", 
           :total => 500
-        }
+        },
+        :tags => []
       }
     end
 
