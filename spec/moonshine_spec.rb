@@ -45,8 +45,7 @@ describe Moonshine do
 
     it "sum should correctly do some stuff" do
       options = {:start => JAN_1, :step => 1.day, :type => 'order', :filters => {:ordered_from => "xavier"}}
-      hash = Moonshine.bootleg(options.merge(:metric => 'sum', :key => 'total', :tags => []))
-      # puts hash
+      Moonshine.bootleg(options.merge(:metric => 'count', :key => 'total', :tags => [])).should eq({"count" => 4})
     end
 
 

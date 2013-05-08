@@ -33,14 +33,20 @@ module Moonshine
       tags = d['tags']
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
       for tag in tags
-        monthly(time, d.type, tag)
+        monthly_log(time, d.type, tag)
       end
-      monthly(time, d.type, "")
+      monthly_log(time, d.type, "")
 
     end
 
+    def self.recompute
+      Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
+        hooks(d)
+      end
+    end
+
     private
-      def self.monthly(time, type, tag)
+      def self.monthly_log(time, type, tag)
         id_monthly = "#{time.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = time.day
         b = Barrel.find_or_create_by({:monthly => {
