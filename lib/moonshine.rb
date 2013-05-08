@@ -70,8 +70,8 @@ module Moonshine
     ## distinct comes later
     metric = options[:metric] ## sum, count
 
-    groups = options[:groups]
-    filters = options[:filters]
+    groups = options[:groups].nil? ? {} : options[:groups]
+    filters = options[:filters].nil? ? {}: options[:filters]
 
     raise Exception if type.nil?
 
