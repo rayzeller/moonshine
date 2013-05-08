@@ -67,7 +67,6 @@ module Moonshine
     key = options[:key]
 
     tags = options[:tags].present? ? options[:tags] : []
-
     ## distinct comes later
     metric = options[:metric] ## sum, count
 
@@ -105,8 +104,7 @@ module Moonshine
       filter_hash["data.#{filter_key.to_s}"] = filter_value.is_a?(Array) ? {"$gte" => filter_value[0], "$lte" => filter_value[1]} : filter_value
     end
     filter_hash["type"] = type
-    tag_hash = {"tags" => {"$all" => tags} }
-    filter_hash.merge(tag_hash) if !tags.empty?
+    filter_hash["tags"] = {"$all" => tags} if !tags.empty?
 
     match_hash = {"$match" => filter_hash } if filter_hash.present?
 

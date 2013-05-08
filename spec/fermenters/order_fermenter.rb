@@ -8,9 +8,10 @@ class OrderFermenter < Moonshine::Fermenter
   data_point :total
   data_point :subtotal
 
-  tag :real, :if => Proc.new { |object| true }
-
-  
+  tag :real, :if => lambda { |object| true }
+  tag :fake, :if => lambda { |object| true }
+  tag :dumb, :if => lambda { |object| true }
+  tag :stupid, :if => lambda { |object| true }
 
   def swipe_fee
     object.calc_swipe 
