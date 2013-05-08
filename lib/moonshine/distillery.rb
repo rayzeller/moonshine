@@ -2,8 +2,9 @@ module Moonshine
   class Distillery
     include Mongoid::Document
 
-    #index "time" => 1
-    #index "type" => 1
+    index "time" => 1
+    index "type" => 1
+    index "tags" => 1
     #cant index :data since it contains dynamic data so might need to move certain stuff to a different table
 
     after_create :hooks
