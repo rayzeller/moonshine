@@ -30,7 +30,7 @@ module Moonshine
 
       ## add ability to switch around timezones
       ## only logging stats for one or zero tags
-      tags = d['tags']
+      tags = d['tags'].nil? [] : d['tags']
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
       for tag in tags
         monthly_log(time, d.type, tag)
