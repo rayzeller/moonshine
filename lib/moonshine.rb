@@ -144,6 +144,7 @@ module Moonshine
       count = 0
       if(!hash.empty?)
         hash.map{|r| r['monthly']['daily'] }.each do |d|
+          next if d.nil?
           d.each_value do |val|
             count = count + val
           end
