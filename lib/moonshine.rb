@@ -138,12 +138,12 @@ module Moonshine
       tag = tags.empty? ? "" : tags.first
       hash = Moonshine::Barrel.collection.aggregate(
         ["$project" => {
-        "c" => "$monthly.daily"},
-        "$match" => {"monthly.meta.time" => {"$gte" => start_time.utc, "$lt" => stop_time.utc}, "monthly.meta.type" => type, "monthly.meta.tag" => tag}
+        "c" => "$daily"},
+        "$match" => {"meta.time" => {"$gte" => start_time.utc, "$lt" => stop_time.utc}}
         ])
       count = 0
       if(!hash.empty?)
-        hash.map{|r| r['monthly']['daily'] }.each do |d|
+        hash.map{|r| r['daily'] }.each do |d|
           next if d.nil?
           d.each_value do |val|
             count = count + val

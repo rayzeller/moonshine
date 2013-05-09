@@ -28,25 +28,21 @@ describe Moonshine::Barrel do
     it "Barrel updates the month counter" do
         tag = ''
         type = send_data[:type]
-        id_monthly = "#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
+        id_monthly = "monthly/#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = timestamp.day
-        expect(Moonshine::Barrel.where('monthly._id' => id_monthly)
-          .where('monthly.meta.time' => timestamp.beginning_of_month.utc)
-          .where('monthly.meta.tag' => tag)
-          .where('monthly.meta.type' => type)
-          .where("monthly.daily.#{day_of_month}" => 1).count).to eq(1)
+        expect(Moonshine::Barrel.where('key' => id_monthly)
+          .where('meta.time' => timestamp.beginning_of_month.utc)
+          .where("daily.#{day_of_month}" => 1).count).to eq(1)
     end
 
      it "Barrel has updated the month counter for our tag" do
         tag = 'test'
         type = send_data[:type]
-        id_monthly = "#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
+        id_monthly = "monthly/#{timestamp.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = timestamp.day
-        expect(Moonshine::Barrel.where('monthly._id' => id_monthly)
-          .where('monthly.meta.time' => timestamp.beginning_of_month.utc)
-          .where('monthly.meta.tag' => tag)
-          .where('monthly.meta.type' => type)
-          .where("monthly.daily.#{day_of_month}" => 1).count).to eq(1)
+        expect(Moonshine::Barrel.where('key' => id_monthly)
+          .where('meta.time' => timestamp.beginning_of_month.utc)
+          .where("daily.#{day_of_month}" => 1).count).to eq(1)
     end
 
   end

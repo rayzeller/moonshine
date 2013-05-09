@@ -2,8 +2,8 @@ module Moonshine
   class Barrel
     include Mongoid::Document
 
-    index({'monthly.meta.time' => 1, 'monthly.meta.type' => 1, 'monthly.meta.tag' => 1})
-    index({'monthly._id' => 1})
+    index({'meta.time' => 1})
+    # index({'monthly._id' => 1})
 
     #####
     #
@@ -48,13 +48,12 @@ module Moonshine
 
     private
       def self.monthly_log(time, type, tag)
-        id_monthly = "#{time.strftime('%Y%m/')}#{type}/#{tag}"
+        id_monthly = "monthly/#{time.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = time.day
-        # b =  Barrel.collection.upsert('$set' => {'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag) if b.nil?
-        b =  Moonshine::Barrel.find_or_create_by(:type => 'order', :tag => tag)
+        b =  Moonshine::Barrel.find_or_create_by(:key => id_monthly)
 
-        Moonshine::Barrel.collection.find({'_id' => b._id}).upsert('$inc' => {
-         "monthly.daily.#{day_of_month}" => 1}, '$set' => {'monthly._id' => id_monthly, 'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag}})
+        Moonshine::Barrel.collection.find({:_id => b._id, :key => id_monthly}).upsert('$inc' => {
+         "daily.#{day_of_month}" => 1}, '$set' => {'meta' => {'time' => time.beginning_of_month.utc}})
         
       end
   end
