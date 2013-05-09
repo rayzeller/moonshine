@@ -50,18 +50,11 @@ module Moonshine
       def self.monthly_log(time, type, tag)
         id_monthly = "#{time.strftime('%Y%m/')}#{type}/#{tag}"
         day_of_month = time.day
-        b = Barrel.find_or_create_by({:monthly => {
-            :_id => id_monthly#,
-            # :meta => {
-            #   :time => time.beginning_of_month.utc,
-            #   :type => type,
-            #   :tag => tag
-            # }
-          }
-        })
-        Barrel.collection.find({:_id => b._id}).upsert('$inc' => {
-         "monthly.daily.#{day_of_month}" => 1}, '$set' => {'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag}})
+        # b =  Barrel.collection.upsert('$set' => {'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag) if b.nil?
+        b =  Moonshine::Barrel.find_or_create_by(:type => 'order', :tag => tag)
 
+        Moonshine::Barrel.collection.find({'_id' => b._id}).upsert('$inc' => {
+         "monthly.daily.#{day_of_month}" => 1}, '$set' => {'monthly._id' => id_monthly, 'monthly.meta' => {'time' => time.beginning_of_month.utc, 'type' => type, 'tag' => tag}})
         
       end
   end

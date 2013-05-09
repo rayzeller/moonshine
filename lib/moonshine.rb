@@ -75,7 +75,7 @@ module Moonshine
 
     raise Exception if type.nil?
 
-    # return pull_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
+    return pull_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     ## automatically precalculate date fields, include data field
 
     project_hash = {"$project" => 
@@ -136,9 +136,9 @@ module Moonshine
   private 
     def self.pull_from_barrel(start_time, stop_time, type, tags)
       tag = tags.empty? ? "" : tags.first
-      hash = Barrel.collection.aggregate(
+      hash = Moonshine::Barrel.collection.aggregate(
         ["$project" => {
-        "monthly" => "$monthly"},
+        "c" => "$monthly.daily"},
         "$match" => {"monthly.meta.time" => {"$gte" => start_time.utc, "$lt" => stop_time.utc}, "monthly.meta.type" => type, "monthly.meta.tag" => tag}
         ])
       count = 0
