@@ -146,7 +146,7 @@ module Moonshine
           time = r['meta']['time']
           r['daily'].each do |val|
             day = (time+(val[0].to_i-1).days).utc
-            count = (count + val[1]) if (start_time.utc <= day && stop_time.utc >= day)
+            count = (count + val[1]) if (start_time.utc <= day && stop_time.utc > day)
           end
         end
       end
