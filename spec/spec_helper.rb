@@ -75,6 +75,11 @@ Dir[ File.join(FERMENTERS, "*.rb") ].sort.each do |file|
 end
 
 module Rails
+
+  def self.env
+    ActiveSupport::StringInquirer.new("test")
+  end
+
   class Application
   end
 end

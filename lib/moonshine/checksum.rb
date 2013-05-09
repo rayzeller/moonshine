@@ -40,6 +40,8 @@ module Moonshine
       # => TODO:
       ## no deleting events, only allow events to get resent ##
       ## maybe mark events as unusable ##
+      ##
+      ## bulk inserts, bulk callbacks
       def repair(start = Time.zone.now, stop = Time.zone.now)
         f = self.fermenter
         self.sent_to_moonshine(f.get_time.to_s, start, stop).find_each do |object|

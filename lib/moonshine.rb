@@ -5,6 +5,7 @@ require 'date'
 require 'moonshine/version'
 require 'mongoid'
 require 'active_record'
+require 'delayed_job_mongoid'
 
 
 module ActiveModel::MoonshineSupport
