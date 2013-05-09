@@ -2,7 +2,7 @@ module Moonshine
   class Barrel
     include Mongoid::Document
 
-    index({'meta.time' => 1})
+    index({'time' => 1})
     # index({'monthly._id' => 1})
 
     #####
@@ -53,7 +53,7 @@ module Moonshine
         b =  Moonshine::Barrel.find_or_create_by(:key => id_monthly)
 
         Moonshine::Barrel.collection.find({:_id => b._id, :key => id_monthly}).upsert('$inc' => {
-         "daily.#{day_of_month}" => 1}, '$set' => {'meta' => {'time' => time.beginning_of_month.utc}})
+         "daily.#{day_of_month}" => 1}, '$set' =>  {'meta.time' => time.beginning_of_month.utc, 'meta.year' => "#{time.strftime('%Y')}".to_i, 'meta.month' => "#{time.strftime('%m')}".to_i })
         
       end
   end

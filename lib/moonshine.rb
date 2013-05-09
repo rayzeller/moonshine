@@ -137,16 +137,16 @@ module Moonshine
     def self.pull_from_barrel(start_time, stop_time, type, tags)
       tag = tags.empty? ? "" : tags.first
       hash = Moonshine::Barrel.collection.aggregate(
-        ["$project" => {
-        "c" => "$daily"},
-        "$match" => {"meta.time" => {"$gte" => start_time.utc, "$lt" => stop_time.utc}}
+        ['$project' => {"meta" => "$meta"},
+        "$match" => {"meta.time" => {"$gte" => start_time.utc, "$lte" => stop_time.utc}}
         ])
       count = 0
       if(!hash.empty?)
-        hash.map{|r| r['daily'] }.each do |d|
-          next if d.nil?
-          d.each_value do |val|
-            count = count + val
+        hash.each do |r|
+          time = r['meta']['time']
+          r['daily'].each do |val|
+            day = (time+(val[0].to_i-1).days).utc
+            count = (count + val[1]) if (start_time.utc <= day && stop_time.utc >= day)
           end
         end
       end
