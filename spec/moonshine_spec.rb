@@ -10,7 +10,7 @@ describe Moonshine do
     let(:send_data) do
       {
         :type => 'order',
-        :tags => []
+        :tags => ['real']
       }
     end
 
@@ -45,7 +45,7 @@ describe Moonshine do
 
     it "sum should correctly do some stuff" do
       options = {:start => JAN_1, :step => 1.day, :type => 'order', :filters => {:ordered_from => "xavier"}}
-      Moonshine.bootleg(options.merge(:metric => 'count', :key => 'total', :tags => [])).should eq({"count" => 4})
+      Moonshine.bootleg(options.merge(:metric => 'count', :key => 'total', :tags => ['real'])).should eq({"count" => 4})
     end
 
 
