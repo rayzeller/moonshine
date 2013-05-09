@@ -138,7 +138,7 @@ module Moonshine
       tag = tags.empty? ? "" : tags.first
       hash = Moonshine::Barrel.collection.aggregate(
         ['$project' => {"meta" => "$meta"},
-        "$match" => { "meta.tag" => tag, "meta.time" => {"$gte" => start_time.utc, "$lte" => stop_time.utc}}
+        "$match" => { "meta.tag" => tag, "meta.time" => {"$gte" => start_time.beginning_of_month.utc, "$lte" => stop_time.beginning_of_month.utc}}
         ])
       count = 0
       if(!hash.empty?)
