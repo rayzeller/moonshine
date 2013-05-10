@@ -11,8 +11,10 @@ describe Moonshine::Barrel do
         :time => Time.now.utc,
         :data => {
           :ordered_from => "xavier", 
-          :total => 500
         },
+        :summed => {
+          :total => 500
+          },
         :tags => ['test']
       }
     end

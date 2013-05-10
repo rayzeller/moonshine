@@ -39,11 +39,12 @@ module Moonshine
         # puts self.as_json
         Barrel.hooks(self)
       end
-      
+
       # JSON representation of the distillery object... same as what the fermenter sends to it
       def as_json
         hash = {}
         hash[:data] = self.data
+        hash[:summed] = self.summed
         hash[:time] = self.time
         hash[:type] = self.type
         hash[:tags] = self.tags

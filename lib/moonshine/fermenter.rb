@@ -12,8 +12,10 @@ module Moonshine
     class_attribute :_type
     class_attribute :_time
     class_attribute :_tags
+    class_attribute :_summed_data ## summed datapoints are summed together during aggregation
 
     self._data = {}
+    self._summed_data = {}
     self._tags = {}
     self._time = DEFAULT_TIME
 
@@ -22,6 +24,7 @@ module Moonshine
       def data(*attrs)
 
         self._data = _data.dup
+        self._summed_data = _summed_data.dup
 
         attrs.each do |attr|
           if Hash === attr
@@ -53,7 +56,11 @@ module Moonshine
       end
 
       def data_point(attr, options={})
-        self._data = _data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
+        if (options[:summed] == true)
+          self._summed_data = _summed_data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
+        else
+          self._data = _data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
+        end
 
         attr = attr.keys[0] if attr.is_a? Hash
 
@@ -113,6 +120,22 @@ module Moonshine
         _fast_data
     end
 
+    def summed_data
+      _fast_summed_data
+      rescue NameError
+        method = "def _fast_summed_data\n"
+
+        method << "  h = {}\n"
+
+        _summed_data.each do |name,key|
+          method << "  h[:\"#{key}\"] = send(:\"#{name}\")\n"
+        end
+        method << "  h\nend"
+
+        self.class.class_eval method
+        _fast_summed_data
+    end
+
     def as_json(options = {})
       return nil if @object.nil?
 
@@ -121,6 +144,7 @@ module Moonshine
 
       @options[:hash] = hash = {}
       hash[:data] = data
+      hash[:summed] = summed_data
       hash[:time] = time
       hash[:type] = type
       hash[:tags] = tags

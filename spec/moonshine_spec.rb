@@ -16,8 +16,8 @@ describe Moonshine do
 
     before do
       for i in 0..EVENTS.length-1
-        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {:ordered_from => DISTINCT_VALUES[i] , :total => 500}))
-        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {:ordered_from => DISTINCT_VALUES[i] , :total => 500}))
+        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {:ordered_from => DISTINCT_VALUES[i]}, :summed => {:total => 500}))
+        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {:ordered_from => DISTINCT_VALUES[i]}, :summed => {:total => 500}))
       end
     end
 

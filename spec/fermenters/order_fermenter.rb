@@ -5,7 +5,7 @@ class OrderFermenter < Moonshine::Fermenter
 
   data :user_id, :store_id, :swipe_fee, :cc_charge
   data_point :sales_tax, :key => :tax
-  data_point :total
+  data_point :total, :summed => true
   data_point :subtotal
 
   tag :real, :if => lambda { |object| true }
