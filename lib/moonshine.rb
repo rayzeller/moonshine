@@ -38,6 +38,14 @@ ActiveSupport.on_load(:active_record) do
   include ActiveModel::MoonshineSupport
 end
 
+class Hash
+  def rmerge!(other_hash)
+    merge!(other_hash) do |key, oldval, newval|
+      oldval.class == self.class ? oldval.rmerge!(newval) : newval
+    end
+  end
+end
+
 module Moonshine
   # require 'mongoid'
   PACIFIC_TIME_ZONE = "Pacific Time (US & Canada)"

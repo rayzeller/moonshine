@@ -51,7 +51,7 @@ module Moonshine
     def self.recompute
       upsert = {}
       Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
-        upsert.merge!(bulk_log(d))
+        upsert.rmerge!(bulk_log(d))
       end
       upsert.each do |tag, times|
         times.each do |time, types|
@@ -60,6 +60,11 @@ module Moonshine
             Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(u)
           end
         end
+      end
+    end
+    def rmerge!(other_hash)
+      merge!(other_hash) do |key, oldval, newval|
+        oldval.class == self.class ? oldval.rmerge!(newval) : newval
       end
     end
 
