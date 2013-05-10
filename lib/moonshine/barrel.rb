@@ -39,7 +39,7 @@ module Moonshine
       type = d['type']
       upsert = {}
       for tag in tags
-        upsert[tag] ||={}
+        upsert[tag] ||= {}
         upsert[tag].merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
       end
       for tag in tags
@@ -66,17 +66,24 @@ module Moonshine
     def self.bulk_log(d)
       # Update monthly stats document
 
-      ## add ability to switch around timezones
-      ## only logging stats for one or zero tags
       tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
       type = d['type']
       upsert = {}
+      day_number = time.day
+
       for tag in tags
         upsert[tag] ||={}
         upsert[tag][time] ||={}
         upsert[tag][time][type] ||= {}
-        upsert[tag][time][type].merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
+        upsert[tag][time][type]["$inc"] ||= Hash.new
+        upsert[tag][time][type]["$inc"] ["day.#{day_number}._c"] ||=0
+        upsert[tag][time][type]["$inc"] ["day.#{day_number}._c"] = upsert[tag][time][type]["$inc"] ["day.#{day_number}._c"] + 1
+        d['data'].each do |k, val|
+           upsert[tag][time][type]["$addToSet"] ||= Hash.new
+           upsert[tag][time][type]["$addToSet"]["day.#{day_number}.#{k}"] ||= []
+           upsert[tag][time][type]["$addToSet"]["day.#{day_number}.#{k}"].push(val) if !upsert[tag][time][type]["$addToSet"]["day.#{day_number}.#{k}"].include?(val)
+        end
       end
       upsert
     end
