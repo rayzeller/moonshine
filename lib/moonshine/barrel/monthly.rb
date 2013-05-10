@@ -27,7 +27,7 @@ module Moonshine
         upsert.each do |tag, times|
           times.each do |time, types|
             types.each do |type, u|
-              Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type}).upsert(u)
+              Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type}).upsert(u)
             end
           end
         end
@@ -57,6 +57,14 @@ module Moonshine
              upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] ||= 0
              upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] + val
           end
+        end
+        return upsert
+      end
+
+      def self.reset
+        Moonshine::Barrel::Monthly.all.each do |m|
+          m.day = Hash.new
+          m.save
         end
       end
 

@@ -149,7 +149,7 @@ module Moonshine
       count = 0
       Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc).each do |m|
         time = m.time
-        puts m.day
+        
         m.day.each do |key, val|
           day = (time+(key.to_i-1).days).utc
           count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc > day)

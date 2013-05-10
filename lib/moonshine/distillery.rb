@@ -30,7 +30,7 @@ module Moonshine
     end
 
     def to_s
-      "#{self.data}-#{self.time}-#{self.type}"
+      "#{self.data}-#{self.time}-#{self.type}-#{self.summed}-#{self.tags}"
     end
 
     protected

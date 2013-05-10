@@ -21,29 +21,7 @@ describe Moonshine do
       end
     end
 
-    # it "distinct should correctly do some stuff" do
-    #   options = {:start => JAN_1, :step => 1.day, :type => 'order'}
-    #   hash = Moonshine.get(options.merge(:metric => 'distinct', :key => 'ordered_from'))
-    #   expect(hash[JAN_1]).to eq([DISTINCT_VALUES[0]])
-    #   expect(hash[JAN_2]).to eq([DISTINCT_VALUES[1]])
-    # end
-
-    # it "distinct count should correctly do some stuff" do
-    #   options = {:start => JAN_1, :step => 1.day, :type => 'order'}
-    #   hash = Moonshine.get(options.merge(:metric => 'distinct.count', :key => 'ordered_from'))
-    #   expect(hash[JAN_1]).to eq(1)
-    #   expect(hash[JAN_2]).to eq(1)
-    # end
-
-
-    # it "sum should correctly do some stuff" do
-    #   options = {:start => JAN_1, :step => 1.day, :type => 'order'}
-    #   hash = Moonshine.get(options.merge(:metric => 'sum', :key => 'total'))
-    #   expect(hash[JAN_1]).to eq( 500 )
-    #   expect(hash[JAN_2]).to eq( 500 )
-    # end
-
-    it "sum should correctly do some stuff" do
+    it "sums data correctly" do
       options = {:start => JAN_1, :step => 1.day, :type => 'order', :filters => {:ordered_from => "xavier"}}
       Moonshine.bootleg(options.merge(:metric => 'count', :key => 'total', :tags => ['real'])).should eq({"count" => 4})
     end

@@ -1,20 +1,19 @@
 require "spec_helper"
 
-describe Moonshine::Barrel do
+describe Moonshine::Barrel::Monthly do
 
   describe "#add_item_to_barrel" do
 
     let(:send_data) do
       {
-        id: 1,
         :type => 'order',
-        :time => Time.now.utc,
+        :time => Time.utc(2012, 1, 2, 8, 0),
         :data => {
           :ordered_from => "xavier", 
         },
         :summed => {
           :total => 500
-          },
+        },
         :tags => ['test']
       }
     end
@@ -25,9 +24,11 @@ describe Moonshine::Barrel do
 
     before do
       Moonshine.send(send_data)
-    end
+    end 
 
-     it "Barrel updates the month counter for our test tag" do
+
+
+    it "Barrel updates the month counter for our test tag" do
         tag = 'test'
         type = send_data[:type]
         day_of_month = timestamp.day
@@ -36,9 +37,20 @@ describe Moonshine::Barrel do
           .where("day.#{day_of_month}._c" => 1).count).to eq(1)
     end
 
-    it "Barrel recomputes in bulk" do
+    describe "#recompute" do
+      before do
         Moonshine::Barrel.recompute
-    end
+      end
 
+      it "Barrel recomputes in bulk" do
+        tag = 'test'
+        type = send_data[:type]
+        day_of_month = timestamp.day
+        expect(Moonshine::Barrel::Monthly.where('tag' => tag)
+          .where('time' => timestamp.beginning_of_month.utc)
+          .where('type' => type)
+          .where("day.#{day_of_month}._c" => 1).count).to eq(1)
+      end
+    end
   end
 end
