@@ -56,9 +56,9 @@ module Moonshine
       upsert.each do |tag, times|
         times.each do |time, types|
           types.each do |type, u|
-            m = Moonshine::Barrel::Monthly.where(:tag => tag, :time => time.beginning_of_month.utc, :type => type).first
-            m = Moonshine::Barrel::Monthly.create(:tag => tag, :time => time.beginning_of_month.utc, :type => type) if m.nil?
-            Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(u)
+            # m = Moonshine::Barrel::Monthly.where(:tag => tag, :time => time.beginning_of_month.utc, :type => type).first
+            # m = Moonshine::Barrel::Monthly.create(:tag => tag, :time => time.beginning_of_month.utc, :type => type) if m.nil?
+            Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type}).upsert(u)
           end
         end
       end
