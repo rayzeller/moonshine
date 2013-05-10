@@ -45,6 +45,7 @@ module Moonshine
   Time.zone = PACIFIC_TIME_ZONE
 
   autoload :Barrel, 'moonshine/barrel'
+  autoload :Monthly, 'moonshine/barrel/monthly'
   autoload :Distillery, 'moonshine/distillery'
   autoload :Fermenter, 'moonshine/fermenter'
   autoload :Observer, 'moonshine/observer'
@@ -136,25 +137,16 @@ module Moonshine
 
   private 
     def self.pull_from_barrel(start_time, stop_time, type, tags)
-      tag = tags.empty? ? "" : tags.first
-      hash = Moonshine::Barrel.collection.aggregate(
-        ['$project' => {"meta" => "$meta"},
-        "$match" => { "meta.tag" => tag, "meta.time" => {"$gte" => start_time.beginning_of_month.utc, "$lte" => stop_time.beginning_of_month.utc}}
-        ])
+      tag = tags.empty? ? "_all" : tags.first
       count = 0
-      if(!hash.empty?)
-        hash.each do |r|
-          time = r['meta']['time']
-          r['daily'].each do |val|
-            day = (time+(val[0].to_i-1).days).utc
-            count = (count + val[1]) if (start_time.utc <= day && stop_time.utc > day)
-          end
+      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc).each do |m|
+        time = m.time
+        m.day.each do |key, val|
+          day = (time+(key.to_i-1).days).utc
+          count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc > day)
         end
       end
-      t = Hash.new
-      t['count'] = count
-      t
+      {"count" => count}
     end
-  
 
 end

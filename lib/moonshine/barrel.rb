@@ -1,8 +1,11 @@
-module Moonshine
-  class Barrel
-    include Mongoid::Document
+require 'moonshine/barrel/monthly'
 
-    index({'time' => 1})
+module Moonshine
+  module Barrel
+    extend ActiveSupport::Concern
+    # include Monthly
+
+    # index({'time' => 1})
     # index({'monthly._id' => 1})
 
     #####
@@ -31,13 +34,15 @@ module Moonshine
 
       ## add ability to switch around timezones
       ## only logging stats for one or zero tags
-      tags = d['tags'].nil? ? [] : d['tags']
+      tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
+      type = d['type']
+      upsert = {}
       for tag in tags
-        monthly_log(time, d.type, tag)
+        upsert.merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
       end
-      monthly_log(time, d.type, "")
-
+      m = Moonshine::Barrel::Monthly.find_or_create_by(:tag => tag, :time => time.beginning_of_month.utc, :type => type)
+      Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(upsert)
     end
 
     def self.recompute
@@ -45,16 +50,5 @@ module Moonshine
         hooks(d)
       end
     end
-
-    private
-      def self.monthly_log(time, type, tag)
-        id_monthly = "monthly/#{time.strftime('%Y%m/')}#{type}/#{tag}"
-        day_of_month = time.day
-        b =  Moonshine::Barrel.find_or_create_by(:key => id_monthly)
-
-        Moonshine::Barrel.collection.find({:_id => b._id, :key => id_monthly}).upsert('$inc' => {
-         "daily.#{day_of_month}" => 1}, '$set' =>  {'meta.tag' => tag, 'meta.time' => time.beginning_of_month.utc, 'meta.year' => "#{time.strftime('%Y')}".to_i, 'meta.month' => "#{time.strftime('%m')}".to_i })
-        
-      end
   end
 end
