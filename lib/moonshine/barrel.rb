@@ -39,16 +39,46 @@ module Moonshine
       type = d['type']
       upsert = {}
       for tag in tags
-        upsert.merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
+        upsert[tag] ||={}
+        upsert[tag].merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
       end
-      m = Moonshine::Barrel::Monthly.find_or_create_by(:tag => tag, :time => time.beginning_of_month.utc, :type => type)
-      Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(upsert)
+      for tag in tags
+        m = Moonshine::Barrel::Monthly.find_or_create_by(:tag => tag, :time => time.beginning_of_month.utc, :type => type)
+        Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(upsert[tag])
+      end
     end
 
     def self.recompute
+      upsert = {}
       Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
-        hooks(d)
+        upsert.merge!(bulk_log(d))
       end
+      upsert.each do |tag, times|
+        times.each do |time, types|
+          types.each do |type, u|
+            m = Moonshine::Barrel::Monthly.find_or_create_by(:tag => tag, :time => time.beginning_of_month.utc, :type => type)
+            Moonshine::Barrel::Monthly.collection.find({:_id => m.id}).upsert(u)
+          end
+        end
+      end
+    end
+
+    def self.bulk_log(d)
+      # Update monthly stats document
+
+      ## add ability to switch around timezones
+      ## only logging stats for one or zero tags
+      tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
+      time = d['time'].in_time_zone("Pacific Time (US & Canada)")
+      type = d['type']
+      upsert = {}
+      for tag in tags
+        upsert[tag] ||={}
+        upsert[tag][time] ||={}
+        upsert[tag][time][type] ||= {}
+        upsert[tag][time][type].merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data']))
+      end
+      upsert
     end
   end
 end

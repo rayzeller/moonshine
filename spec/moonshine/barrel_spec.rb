@@ -34,5 +34,9 @@ describe Moonshine::Barrel do
           .where("day.#{day_of_month}._c" => 1).count).to eq(1)
     end
 
+    it "Barrel recomputes in bulk" do
+        Moonshine::Barrel.recompute
+    end
+
   end
 end
