@@ -51,7 +51,7 @@ module Moonshine
     def self.recompute
       upsert = {}
       Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
-        upsert.rmerge!(bulk_log(d))
+        bulk_log(d, upsert)
       end
       upsert.each do |tag, times|
         times.each do |time, types|
@@ -69,14 +69,13 @@ module Moonshine
       end
     end
 
-    def self.bulk_log(d)
+    def self.bulk_log(d, upsert)
       # Update monthly stats document
 
       tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
       time = d['time'].in_time_zone("Pacific Time (US & Canada)")
       bom = time.beginning_of_month.utc
       type = d['type']
-      upsert = {}
       day_number = time.day
 
       for tag in tags
@@ -84,15 +83,14 @@ module Moonshine
         upsert[tag][bom] ||= {}
         upsert[tag][bom][type] ||= {}
         upsert[tag][bom][type]["$inc"] ||= Hash.new
-        upsert[tag][bom][type]["$inc"] ["day.#{day_number}._c"] ||=0
-        upsert[tag][bom][type]["$inc"] ["day.#{day_number}._c"] = upsert[tag][bom][type]["$inc"] ["day.#{day_number}._c"] + 1
+        upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] ||=0
+        upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] + 1
         d['data'].each do |k, val|
            upsert[tag][bom][type]["$addToSet"] ||= Hash.new
            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"] ||= []
            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].push(val) if !upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].include?(val)
         end
       end
-      upsert
     end
   end
 end
