@@ -38,6 +38,7 @@ describe Order do
         type = 'order'
         timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
         day_of_month = timestamp.day
+        
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc)
           .where("day.#{day_of_month}.store_id" => [order.store_id]).count).to eq(1)
