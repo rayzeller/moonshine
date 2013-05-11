@@ -38,6 +38,7 @@ module Moonshine
         time = d['time'].in_time_zone("Pacific Time (US & Canada)")
         bom = time.beginning_of_month.utc
         type = d['type']
+        d['summed'] =  d['summed'].nil? ? Hash.new : d['summed']
         day_number = time.day
 
         for tag in tags
