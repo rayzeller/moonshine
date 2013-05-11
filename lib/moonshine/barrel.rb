@@ -60,7 +60,6 @@ module Moonshine
         end
       end
       Moonshine::Barrel::Monthly.bulk_insert(upsert)
-      puts Moonshine::Barrel::Monthly.last.day
     end
   end
 end

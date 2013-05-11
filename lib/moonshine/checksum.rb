@@ -29,6 +29,12 @@ module Moonshine
         return errors.empty? ? true : errors
       end
 
+      def get_count(start = Time.zone.now, stop = Time.zone.now)
+        f = self.fermenter
+        count = self.sent_to_moonshine(f.get_time.to_s, start, stop).count
+        dist_count = Distillery.where(:type => f.get_type).where(:time.gte => start, :time.lte => stop).count
+        return dist_count > count
+      end
       
 
       # allows you to resend old events to the Distillery
@@ -44,6 +50,10 @@ module Moonshine
       ## bulk inserts, bulk callbacks
       def repair(start = Time.zone.now, stop = Time.zone.now)
         f = self.fermenter
+        
+        ## start over if distillery has too many events
+        Distillery.where(:type => f.get_type).where(:time.gte => start, :time.lte => stop).delete_all if get_count(start,stop)
+
         self.sent_to_moonshine(f.get_time.to_s, start, stop).find_each do |object|
           json = f.new(object).as_json
           Moonshine.send(json) if !Distillery.where(json).exists?
