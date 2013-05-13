@@ -140,7 +140,7 @@ module Moonshine
     def self.pull_from_barrel(start_time, stop_time, type, tags)
       tag = tags.empty? ? "_all" : tags.first
       count = 0
-      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc).each do |m|
+      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).each do |m|
         time = m.time
         
         m.day.each do |key, val|
