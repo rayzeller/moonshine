@@ -13,9 +13,11 @@ module Moonshine
     class_attribute :_time
     class_attribute :_tags
     class_attribute :_summed_data ## summed datapoints are summed together during aggregation
+    class_attribute :_distinct_data ## distinct data is grouped together in a set during aggregations
 
     self._data = {}
     self._summed_data = {}
+    self._distinct_data = {}
     self._tags = {}
     self._time = DEFAULT_TIME
 
@@ -25,6 +27,7 @@ module Moonshine
 
         self._data = _data.dup
         self._summed_data = _summed_data.dup
+        self._distinct_data = _distinct_data.dup
 
         attrs.each do |attr|
           if Hash === attr
@@ -58,6 +61,8 @@ module Moonshine
       def data_point(attr, options={})
         if (options[:summed] == true)
           self._summed_data = _summed_data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
+        elsif (options[:distinct] == true)
+          self._distinct_data = _distinct_data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
         else
           self._data = _data.merge(attr.is_a?(Hash) ? attr : {attr => options[:key] || attr.to_s.gsub(/\?$/, '').to_sym})
         end
@@ -120,6 +125,22 @@ module Moonshine
         _fast_data
     end
 
+    def distinct_data
+      _fast_distinct_data
+      rescue NameError
+        method = "def _fast_distinct_data\n"
+
+        method << "  h = {}\n"
+
+        _distinct_data.each do |name,key|
+          method << "  h[:\"#{key}\"] = send(:\"#{name}\")\n"
+        end
+        method << "  h\nend"
+
+        self.class.class_eval method
+        _fast_distinct_data
+    end
+
     def summed_data
       _fast_summed_data
       rescue NameError
@@ -145,6 +166,7 @@ module Moonshine
       @options[:hash] = hash = {}
       hash[:data] = data
       hash[:summed] = summed_data
+      hash[:distinct] = distinct_data
       hash[:time] = time
       hash[:type] = type
       hash[:tags] = tags

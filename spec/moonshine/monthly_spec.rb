@@ -14,6 +14,8 @@ describe Moonshine::Barrel::Monthly do
         :summed => {
           :total => 500
         },
+        :distinct => {
+        },
         :tags => ['test']
       }
     end

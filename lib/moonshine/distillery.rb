@@ -6,6 +6,9 @@ module Moonshine
     index "type" => 1
     index "tags" => 1
     #cant index :data since it contains dynamic data so might need to move certain stuff to a different table
+    field :data, :type => Hash
+    field :summed, :type => Hash
+    field :distinct, :type => Hash
 
     after_create :hooks
 
@@ -30,7 +33,7 @@ module Moonshine
     end
 
     def to_s
-      "#{self.data}-#{self.time}-#{self.type}-#{self.summed}-#{self.tags}"
+      "#{self.data}-#{self.time}-#{self.type}-#{self.summed}-#{self.tags}-#{self.distinct}"
     end
 
     protected
@@ -45,6 +48,7 @@ module Moonshine
         hash = {}
         hash[:data] = self.data
         hash[:summed] = self.summed
+        hash[:distinct] = self.distinct
         hash[:time] = self.time
         hash[:type] = self.type
         hash[:tags] = self.tags

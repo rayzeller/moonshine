@@ -3,7 +3,8 @@ class OrderFermenter < Moonshine::Fermenter
   type 'order'
   time :created_at
 
-  data :user_id, :store_id, :swipe_fee, :cc_charge
+  data_point :user_id, :distinct => true
+  data :store_id, :swipe_fee, :cc_charge
   data_point :sales_tax, :key => :tax
   data_point :total, :summed => true
   data_point :subtotal

@@ -8,11 +8,11 @@ module Moonshine
       field :tag, :type => String
       field :day, type: Hash
 
-      def self.hooks(tag, time, attributes, summed_attributes)
+      def self.hooks(tag, time, distinct_attributes, summed_attributes)
         day_number = time.day
         add_to_set = {}
         inc = {"day.#{day_number}._c" => 1}
-        attributes.each do |a, val|
+        distinct_attributes.each do |a, val|
           add_to_set["day.#{day_number}.#{a}"] = val
         end
         summed_attributes.each do |a, val|
@@ -39,6 +39,7 @@ module Moonshine
         bom = time.beginning_of_month.utc
         type = d['type']
         d['summed'] =  d['summed'].nil? ? Hash.new : d['summed']
+        d['distinct'] =  d['distinct'].nil? ? Hash.new : d['distinct']
         day_number = time.day
 
         for tag in tags
@@ -48,7 +49,7 @@ module Moonshine
           upsert[tag][bom][type]["$inc"] ||= Hash.new
           upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] ||=0
           upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] + 1
-          d['data'].each do |k, val|
+          d['distinct'].each do |k, val|
             upsert[tag][bom][type]["$addToSet"] ||= Hash.new
             upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"] ||= []
             upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].push(val) if !upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].include?(val)
