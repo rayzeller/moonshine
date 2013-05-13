@@ -9,6 +9,7 @@ module Moonshine
     field :data, :type => Hash
     field :summed, :type => Hash
     field :distinct, :type => Hash
+    field :time, :type => DateTime
 
     after_create :hooks
 
