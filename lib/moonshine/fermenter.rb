@@ -167,7 +167,7 @@ module Moonshine
       hash[:data] = data
       hash[:summed] = summed_data
       hash[:distinct] = distinct_data
-      hash[:time] = time
+      hash[:time] = time.to_time
       hash[:type] = type
       hash[:tags] = tags
       hash

@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "mongoid", "3.1.3"
   gem.add_dependency "deep_merge"
+  gem.add_dependency "delayed_job"
   gem.add_development_dependency "rspec", "~>2.0"
   gem.add_development_dependency "rake"
   gem.add_development_dependency "sqlite3"
