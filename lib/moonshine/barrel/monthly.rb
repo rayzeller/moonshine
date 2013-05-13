@@ -51,8 +51,9 @@ module Moonshine
           upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}._c"] + 1
           d['distinct'].each do |k, val|
             upsert[tag][bom][type]["$addToSet"] ||= Hash.new
-            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"] ||= []
-            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].push(val) if !upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].include?(val)
+            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"] ||= Hash.new
+            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"]["$each"] ||= []
+            upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"]["$each"].push(val) if !upsert[tag][bom][type]["$addToSet"]["day.#{day_number}.#{k}"].include?(val)
           end
           d['summed'].each do |k, val|
             upsert[tag][bom][type]["$inc"] ||= Hash.new
