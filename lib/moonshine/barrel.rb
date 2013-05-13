@@ -41,7 +41,7 @@ module Moonshine
       upsert = {}
       for tag in tags
         upsert[tag] ||= {}
-        upsert[tag].deep_merge!(Moonshine::Barrel::Monthly.hooks(tag, time, d['data'], d['summed']))
+        upsert[tag] = upsert[tag].deep_merge(Moonshine::Barrel::Monthly.hooks(tag, time, d['data'], d['summed']))
       end
       for tag in tags
         Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type}).upsert(upsert[tag])
@@ -53,11 +53,12 @@ module Moonshine
       upsert = {}
       c = 0
       Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
-        upsert.deep_merge!(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
+        upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
         c = c + 1
         if(c > 10000)
           Moonshine::Barrel::Monthly.bulk_insert(upsert)
           upsert = {}
+          c = 0
         end
       end
       Moonshine::Barrel::Monthly.bulk_insert(upsert)
