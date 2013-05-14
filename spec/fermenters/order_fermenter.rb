@@ -24,5 +24,4 @@ class OrderFermenter < Moonshine::Fermenter
     object.calc_cc_charge
   end
 
-
 end

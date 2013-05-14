@@ -1,6 +1,6 @@
-class Order < ActiveRecord::Base
+class Refund < ActiveRecord::Base
   include Moonshine::Observer
   include Moonshine::Checksum
 
-  has_many :refunds
+  belongs_to :order
 end

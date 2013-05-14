@@ -1,8 +1,10 @@
 module Moonshine
   class Fermenter
+    extend ActiveSupport::DescendantsTracker
+
     ### TODO
     #
-    #  add support for associations
+    #  add support for associations ??
     #
     # # # # # # # 
 

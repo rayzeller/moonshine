@@ -69,7 +69,7 @@ module Moonshine
     type = options[:type]
     key = options[:key]
 
-    tags = options[:tags].present? ? options[:tags] : []
+    tags = options[:tags].present? ? options[:tags] : ['_all']
     ## distinct comes later
     metric = options[:metric] ## sum, count
 
@@ -78,7 +78,8 @@ module Moonshine
 
     raise Exception if type.nil?
 
-    return pull_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
+    return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
+    return all_from_barrel(start_time, stop_time, type, tags) if metric == 'all'
     ## automatically precalculate date fields, include data field
 
     project_hash = {"$project" => 
@@ -136,8 +137,32 @@ module Moonshine
   DEFAULT_STOP = Proc.new { Time.zone.now }
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
 
-  private 
-    def self.pull_from_barrel(start_time, stop_time, type, tags)
+  private
+    def self.all_from_barrel(start_time, stop_time, type, tags)
+      tags = tags.dup.empty? ? ["_all"] : tags
+      h = Hash.new
+
+      tags.each do |tag|
+        h[tag] ||= Hash.new
+        Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).each do |m|
+          time = m.time
+          
+          m.day.each do |key, val|
+            day = (time+(key.to_i-1).days).utc
+            if (start_time.utc <= day && stop_time.utc > day)
+              h[tag][day] ||= Hash.new
+              h[tag][day]['count'] = val['_c']
+              val.each do |key, data|
+                h[tag][day][key] = data if key != '_c'
+              end
+            end
+          end
+        end
+      end
+      h
+    end
+
+    def self.count_from_barrel(start_time, stop_time, type, tags)
       tag = tags.empty? ? "_all" : tags.first
       count = 0
       Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).each do |m|

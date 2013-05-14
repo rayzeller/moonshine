@@ -94,12 +94,17 @@ ActiveRecord::Migration.create_table :orders do |t|
   t.string :store_id
   t.string :user_id
   t.time :time
-  t.date :date
+  t.date :date, :null => false, :default => Time.zone.now.strftime("%a, %d %b %Y")
   t.integer :total
   t.integer :subtotal
   t.integer :sales_tax
   t.integer :calc_swipe
   t.integer :calc_cc_charge
+  t.timestamps
+end
+ActiveRecord::Migration.create_table :refunds do |t|
+  t.integer :order_id
+  t.integer :total
   t.timestamps
 end
 

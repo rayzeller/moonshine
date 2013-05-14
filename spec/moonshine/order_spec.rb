@@ -15,6 +15,13 @@ describe Order do
         )
     end
 
+    let(:refund) do
+      Refund.create(
+        :order_id => order.id,
+        :total => 500
+        )
+    end
+
     it "order gets sent to barrel" do
         tag = 'stupid'
         type = 'order'

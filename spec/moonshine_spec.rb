@@ -22,8 +22,21 @@ describe Moonshine do
     end
 
     it "sums data correctly" do
-      options = {:start => JAN_1, :step => 1.day, :type => 'order', :filters => {:ordered_from => "xavier"}}
+      options = {:start => JAN_1, :step => 1.day, :type => 'order'}
       Moonshine.bootleg(options.merge(:metric => 'count', :key => 'total', :tags => ['real'])).should eq({"count" => 4})
+    end
+
+    it "returns all data correctly" do
+      options = {:start => JAN_1, :type => 'order'}
+      Moonshine.bootleg(options.merge(:metric => 'all', :tags => ['real'])).should eq(
+        {"real" =>
+          {
+            JAN_1.to_datetime => { "count" => 1, "total" => 500 },
+            JAN_2.to_datetime => { "count" => 3, "total" => 1500}
+
+            }
+          }
+        )
     end
 
 
