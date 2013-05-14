@@ -93,6 +93,8 @@ ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
 ActiveRecord::Migration.create_table :orders do |t|
   t.string :store_id
   t.string :user_id
+  t.time :time
+  t.date :date
   t.integer :total
   t.integer :subtotal
   t.integer :sales_tax

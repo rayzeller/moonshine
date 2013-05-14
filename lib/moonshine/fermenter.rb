@@ -31,7 +31,7 @@ module Moonshine
 
         attrs.each do |attr|
           if Hash === attr
-            attr.each {|attr_real, key| data_point attr_real, :key => key }  ## comment out??
+            attr.each {|attr_real, key| data_point attr_real, :key => key }
           else
             data_point attr
           end

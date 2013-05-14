@@ -30,5 +30,9 @@ describe Moonshine::Checksum do
     it "checksum confirms that order is in distillery" do
       expect(Order.checksum(order.created_at - 10.seconds, order.created_at+ 1.day)).to eq(true)
     end
+
+    it "repair will check for existing objects without raising an error" do
+      expect(Order.repair(order.created_at - 10.seconds, order.created_at+ 1.day)).to eq(true)
+    end
   end
 end

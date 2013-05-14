@@ -9,7 +9,9 @@ describe Order do
         :subtotal => 450,
         :sales_tax => 50,
         :calc_swipe => 5,
-        :calc_cc_charge => 23
+        :calc_cc_charge => 23,
+        :time => Time.new,
+        :date => Time.zone.now.strftime("%a, %d %b %Y")
         )
     end
 

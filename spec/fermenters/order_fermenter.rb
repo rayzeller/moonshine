@@ -8,6 +8,8 @@ class OrderFermenter < Moonshine::Fermenter
   data_point :sales_tax, :key => :tax
   data_point :total, :summed => true
   data_point :subtotal
+  data_point :date
+  data_point :time
 
   tag :real, :if => lambda { |object| true }
   tag :fake, :if => lambda { |object| true }
