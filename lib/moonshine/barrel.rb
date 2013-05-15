@@ -60,7 +60,7 @@ module Moonshine
         d['distinct'].each do |k,v|
           upsert_kv[k] ||= Hash.new
           upsert_kv[k][v.to_s] ||= Hash.new
-          upsert_kv[k][v.to_s] = upsert_kv[k][v.to_s].deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup, true))
+          upsert_kv[k][v.to_s] = upsert_kv[k][v.to_s].deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert_kv[k][v.to_s].dup, true))
         end
         
         upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
