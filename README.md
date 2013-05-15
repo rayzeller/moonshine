@@ -30,7 +30,7 @@ end
 ```
 
 Anything you label ```:distinct => true``` can be queried on.
-Anything you label ```:summed => true``` will automatically be summed and aggreagated in the background.
+Anything you label ```:summed => true``` will automatically be summed and aggregated in the background.
 Anything you list as a tag can be queried on.  If you don't list any tags, the default tag (which is always added) is ```_all```.
 
 Right now you can query a maximum of one "distinct" event.  You can query multiple tag events, but they are not aggregated together.  One example is classifying multiple types of events:
@@ -90,5 +90,7 @@ returns:
   }
 }
 ```
+
+Count is always returned.  Sorry.
 
 etc.
