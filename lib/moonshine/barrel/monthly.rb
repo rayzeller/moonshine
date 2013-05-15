@@ -37,7 +37,7 @@ module Moonshine
 
       def self.bulk_insert_kv(upsert)
         upsert.each do |key, values|
-          values.each do |values, tags|
+          values.each do |value, tags|
             tags.each do |tag, times|
               times.each do |time, types|
                 types.each do |type, u|
