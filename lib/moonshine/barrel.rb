@@ -68,7 +68,7 @@ module Moonshine
         c = c + 1
         if(c > 10000)
           Moonshine::Barrel::Monthly.bulk_insert(upsert)
-          Moonshine::Barrel::Monthly.bulk_insert(upsert_kv)
+          Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
           upsert = {}
           c = 0
         end
