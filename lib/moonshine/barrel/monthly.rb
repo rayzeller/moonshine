@@ -11,7 +11,7 @@ module Moonshine
       field :day, type: Hash
 
       def self.hooks(tag, time, distinct_attributes, summed_attributes)
-        day_number = time.day
+        day_number = two_digit_day(time)
         add_to_set = {}
         inc = {"day.#{day_number}._c" => 1}
         distinct_attributes.each do |a, val|
@@ -56,7 +56,7 @@ module Moonshine
         type = d['type']
         d['summed'] =  d['summed'].nil? ? Hash.new : d['summed']
         d['distinct'] =  d['distinct'].nil? ? Hash.new : d['distinct']
-        day_number = time.day
+        day_number = two_digit_day(time)
 
         for tag in tags
           upsert[tag] ||={}
@@ -90,6 +90,13 @@ module Moonshine
       end
 
       index ({"time" => 1, "type" => 1, "tag" => 1, "fkey" => 1, "fval" => 1})
+      
+      
+
+      ### should be helper class
+      def self.two_digit_day(time)
+        sprintf '%02d', time.day
+      end
     end
   end
 end

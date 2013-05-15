@@ -19,7 +19,7 @@ describe Moonshine::Distillery do
       tag = 'stupid'
       type = 'order'
       timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
-      day_of_month = timestamp.day
+      day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
       expect(Moonshine::Distillery.where('type' => type)
         .where('time' => order.created_at)
         .where('data.date' => order.date).count).to eq(1)

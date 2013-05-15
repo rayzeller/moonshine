@@ -33,7 +33,7 @@ describe Moonshine::Barrel::Monthly do
     it "Barrel updates the month counter for our test tag" do
         tag = 'test'
         type = send_data[:type]
-        day_of_month = timestamp.day
+        day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc)
           .where("day.#{day_of_month}._c" => 1).count).to eq(1)
@@ -47,7 +47,7 @@ describe Moonshine::Barrel::Monthly do
       it "Barrel recomputes in bulk" do
         tag = 'test'
         type = send_data[:type]
-        day_of_month = timestamp.day
+        day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc)
           .where('type' => type)

@@ -27,6 +27,7 @@ describe Order do
         type = 'order'
         timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
         day_of_month = timestamp.day
+        day_of_month = timestamp.day
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc).where({:fkey => '', :fval => ''})
           .where("day.#{day_of_month}._c" => 1).count).to eq(1)
@@ -36,7 +37,7 @@ describe Order do
         tag = 'stupid'
         type = 'order'
         timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
-        day_of_month = timestamp.day
+        day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc).where({:fkey => '', :fval => ''})
           .where("day.#{day_of_month}.total" => 500).count).to eq(1)
@@ -46,8 +47,8 @@ describe Order do
         tag = 'stupid'
         type = 'order'
         timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
-        day_of_month = timestamp.day
-
+        day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
+        
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc).where({:fkey => '', :fval => ''})
           .where("day.#{day_of_month}.user_id" => [order.user_id]).count).to eq(1)

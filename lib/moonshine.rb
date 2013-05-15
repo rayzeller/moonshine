@@ -136,6 +136,8 @@ module Moonshine
     #USE DB Refresher, and make this method private maybe##
     Distillery.destroy_all
     Barrel::Monthly.destroy_all
+    Distillery.create_indexes
+    Barrel::Monthly.create_indexes
   end
 
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
