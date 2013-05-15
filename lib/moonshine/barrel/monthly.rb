@@ -41,7 +41,7 @@ module Moonshine
             tags.each do |tag, times|
               times.each do |time, types|
                 types.each do |type, u|
-                  Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type, :fkey => key, :fval => value}).upsert(u)
+                  Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type, :fkey => key, :fval => value.to_s}).upsert(u)
                 end
               end
             end

@@ -45,7 +45,7 @@ module Moonshine
       end
       for tag in tags
         d['distinct'].each do |k, v|
-          Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => k, :fval => v}).upsert(upsert[tag])
+          Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => k, :fval => v.to_s}).upsert(upsert[tag])
         end
         Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => '', :fval => ''}).upsert(upsert[tag])
       end
@@ -59,8 +59,8 @@ module Moonshine
       Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
         d['distinct'].each do |k,v|
           upsert_kv[k] ||= Hash.new
-          upsert_kv[k][v] ||= Hash.new
-          upsert_kv[k][v] = upsert_kv.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup, true))
+          upsert_kv[k][v.to_s] ||= Hash.new
+          upsert_kv[k][v.to_s] = upsert_kv[k][v.to_s].deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup, true))
         end
         
         upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
@@ -70,6 +70,7 @@ module Moonshine
           Moonshine::Barrel::Monthly.bulk_insert(upsert)
           Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
           upsert = {}
+          upsert_kv = {}
           c = 0
         end
       end

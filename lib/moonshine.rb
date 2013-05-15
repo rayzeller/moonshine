@@ -158,7 +158,7 @@ module Moonshine
               h[tag][day] ||= Hash.new
               h[tag][day]['count'] = val['_c']
               val.each do |key, data|
-                h[tag][day][key] = data if key.in?(only)
+                h[tag][day][key] = data if (key.in?(only) && !only.empty?)
               end
             end
           end
