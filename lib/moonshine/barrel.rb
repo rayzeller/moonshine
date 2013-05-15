@@ -44,24 +44,37 @@ module Moonshine
         upsert[tag] = upsert[tag].deep_merge(Moonshine::Barrel::Monthly.hooks(tag, time, d['distinct'], d['summed']))
       end
       for tag in tags
-        Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type}).upsert(upsert[tag])
+        d['distinct'].each do |k, v|
+          Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => k, :fval => v}).upsert(upsert[tag])
+        end
+        Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => '', :fval => ''}).upsert(upsert[tag])
       end
     end
 
     def self.recompute
       Moonshine::Barrel::Monthly.delete_all
       upsert = {}
+      upsert_kv = {}
       c = 0
       Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
+        d['distinct'].each do |k,v|
+          upsert_kv[k] ||= Hash.new
+          upsert_kv[k][v] ||= Hash.new
+          upsert_kv[k][v] = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
+        end
+        
         upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
+
         c = c + 1
         if(c > 10000)
           Moonshine::Barrel::Monthly.bulk_insert(upsert)
+          Moonshine::Barrel::Monthly.bulk_insert(upsert_kv)
           upsert = {}
           c = 0
         end
       end
       Moonshine::Barrel::Monthly.bulk_insert(upsert)
+      Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
     end
   end
 end

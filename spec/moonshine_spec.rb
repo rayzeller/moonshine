@@ -16,8 +16,8 @@ describe Moonshine do
 
     before do
       for i in 0..EVENTS.length-1
-        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {:ordered_from => DISTINCT_VALUES[i]}, :summed => {:total => 500}, :distinct => {}))
-        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {:ordered_from => DISTINCT_VALUES[i]}, :summed => {:total => 500}, :distinct => {}))
+        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i]}))
+        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i]}))
       end
     end
 
@@ -28,11 +28,24 @@ describe Moonshine do
 
     it "returns all data correctly" do
       options = {:start => JAN_1, :type => 'order'}
-      Moonshine.bootleg(options.merge(:metric => 'all', :tags => ['real'])).should eq(
+      Moonshine.bootleg(options.merge(:metric => 'all', :tags => ['real'], :only => ['total'])).should eq(
         {"real" =>
           {
             JAN_1.to_datetime => { "count" => 1, "total" => 500 },
             JAN_2.to_datetime => { "count" => 3, "total" => 1500}
+
+            }
+          }
+        )
+    end
+
+    it "returns filtered data correctly" do
+      options = {:start => JAN_1, :type => 'order'}
+      Moonshine.bootleg(options.merge(:metric => 'all', :tags => ['real'], :only => ['total'], :filter_key => 'ordered_from', :filter_value => 'xavier')).should eq(
+        {"real" =>
+          {
+            JAN_1.to_datetime => { "count" => 1, "total" => 500 },
+            JAN_2.to_datetime => { "count" => 1, "total" => 500}
 
             }
           }

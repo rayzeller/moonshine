@@ -6,6 +6,8 @@ module Moonshine
       field :time, :type => DateTime
       field :type, :type => String
       field :tag, :type => String
+      field :fkey, :type => String
+      field :fval, :type => String
       field :day, type: Hash
 
       def self.hooks(tag, time, distinct_attributes, summed_attributes)
@@ -27,7 +29,21 @@ module Moonshine
         upsert.each do |tag, times|
           times.each do |time, types|
             types.each do |type, u|
-              Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type}).upsert(u)
+              Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type, :fkey => "", :fval => ""}).upsert(u)
+            end
+          end
+        end
+      end
+
+      def self.bulk_insert_kv(upsert)
+        upsert.each do |key, values|
+          values.each do |values, tags|
+            tags.each do |tag, times|
+              times.each do |time, types|
+                types.each do |type, u|
+                  Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time, :type => type, :fkey => key, :fval => value}).upsert(u)
+                end
+              end
             end
           end
         end
@@ -66,12 +82,12 @@ module Moonshine
 
       def self.reset
         Moonshine::Barrel::Monthly.all.each do |m|
-          m.day = Hash.new
+          m.day = {}
           m.save
         end
       end
 
-      index ({"time" => 1, "type" => 1, "tag" => 1})
+      index ({"time" => 1, "type" => 1, "tag" => 1, "fkey" => 1, "fval" => 1})
     end
   end
 end

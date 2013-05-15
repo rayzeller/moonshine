@@ -66,21 +66,26 @@ module Moonshine
     stop_time = options[:stop].present? ? options[:stop].in_time_zone("Pacific Time (US & Canada)") : DEFAULT_STOP.call
     step = options[:step].present? ? options[:step] : DEFAULT_STEP ## HMMMMMMM -- all time??? -- comeback to this
     
+    only = options[:only].present? ? options[:only] : []
+
     type = options[:type]
     key = options[:key]
 
     tags = options[:tags].present? ? options[:tags] : ['_all']
     ## distinct comes later
     metric = options[:metric] ## sum, count
+    fkey = options[:filter_key].nil? ? '' : options[:filter_key]
+    fval = options[:filter_value].nil? ? '' : options[:filter_value]
 
     groups = options[:groups].nil? ? {} : options[:groups]
-    filters = options[:filters].nil? ? {}: options[:filters]
 
     raise Exception if type.nil?
 
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
-    return all_from_barrel(start_time, stop_time, type, tags) if metric == 'all'
+    return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
     ## automatically precalculate date fields, include data field
+
+    filters = options[:filters].nil? ? {}: options[:filters]
 
     project_hash = {"$project" => 
       {
@@ -130,7 +135,7 @@ module Moonshine
   def self.reset
     #USE DB Refresher, and make this method private maybe##
     Distillery.destroy_all
-    Barrel.destroy_all
+    Barrel::Monthly.destroy_all
   end
 
   DEFAULT_START = Proc.new { Time.zone.now.beginning_of_day }
@@ -138,13 +143,13 @@ module Moonshine
   DEFAULT_STEP = 24 * 60 * 60 ## 86400 seconds
 
   private
-    def self.all_from_barrel(start_time, stop_time, type, tags)
+    def self.all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval)
       tags = tags.dup.empty? ? ["_all"] : tags
       h = Hash.new
 
       tags.each do |tag|
         h[tag] ||= Hash.new
-        Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).each do |m|
+        Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type, :fkey => fkey, :fval => fval).each do |m|
           time = m.time
           
           m.day.each do |key, val|
@@ -153,7 +158,7 @@ module Moonshine
               h[tag][day] ||= Hash.new
               h[tag][day]['count'] = val['_c']
               val.each do |key, data|
-                h[tag][day][key] = data if key != '_c'
+                h[tag][day][key] = data if key.in?(only)
               end
             end
           end
@@ -165,7 +170,7 @@ module Moonshine
     def self.count_from_barrel(start_time, stop_time, type, tags)
       tag = tags.empty? ? "_all" : tags.first
       count = 0
-      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).each do |m|
+      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type).where({:fkey => '', :fval => ''}).each do |m|
         time = m.time
         
         m.day.each do |key, val|
