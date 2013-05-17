@@ -156,7 +156,7 @@ module Moonshine
           
           m.day.each do |key, val|
             day = (time+(key.to_i-1).days).utc
-            if (start_time.utc <= day && stop_time.utc > day)
+            if (start_time.utc <= day && stop_time.utc >= day)
               h[tag][day] ||= Hash.new
               h[tag][day]['count'] = val['_c']
               val.each do |key, data|
@@ -177,7 +177,7 @@ module Moonshine
         
         m.day.each do |key, val|
           day = (time+(key.to_i-1).days).utc
-          count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc > day)
+          count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc >= day)
         end
       end
       {"count" => count}
