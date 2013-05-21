@@ -66,19 +66,19 @@ module Moonshine
 
       def self.recompute
         Moonshine::Barrel::Lifetime.delete_all
-        upsert = {}
-        c = 0
+        # upsert = {}
+        # c = 0
         Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
-          upsert = upsert.deep_merge(Moonshine::Barrel::Lifetime.bulk_log(d, upsert.dup))
+          # upsert = upsert.deep_merge(Moonshine::Barrel::Lifetime.bulk_log(d, upsert.dup))
           
-          c = c + 1
-          if(c > 10000)
-            Moonshine::Barrel::Lifetime.bulk_insert(upsert)
-            upsert = {}
-            c = 0
-          end
+          # c = c + 1
+          # if(c > 10000)
+            Moonshine::Barrel::Lifetime.bulk_insert(Moonshine::Barrel::Lifetime.bulk_log(d, {}))
+            # upsert = {}
+            # c = 0
+          # end
         end
-        Moonshine::Barrel::Lifetime.bulk_insert(upsert)
+        # Moonshine::Barrel::Lifetime.bulk_insert(upsert)
       end
 
       index ({"type" => 1, "fkey" => 1, "fval" => 1})
