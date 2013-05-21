@@ -49,6 +49,27 @@ module Moonshine
         end
       end
 
+      def self.log_hit(d, filter=false)
+        # Update monthly stats document
+
+        ## add ability to switch around timezones
+        ## only logging stats for one or zero tags
+        tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
+        time = d['time'].in_time_zone("Pacific Time (US & Canada)")
+        type = d['type']
+        upsert = {}
+        for tag in tags
+          upsert[tag] ||= {}
+          upsert[tag] = upsert[tag].deep_merge(Moonshine::Barrel::Monthly.hooks(tag, time, d['distinct'], d['summed']))
+        end
+        for tag in tags
+          d['distinct'].each do |k, v|
+            Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => k, :fval => v.to_s}).upsert(upsert[tag])
+          end
+          Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => '', :fval => ''}).upsert(upsert[tag])
+        end
+      end
+
       def self.bulk_log(d, upsert, filter = false)
         tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
         time = d['time'].in_time_zone("Pacific Time (US & Canada)")
@@ -80,6 +101,33 @@ module Moonshine
           end
         end
         return upsert
+      end
+
+      def self.recompute
+        Moonshine::Barrel::Monthly.delete_all
+        upsert = {}
+        upsert_kv = {}
+        c = 0
+        Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
+          d['distinct'].each do |k,v|
+            upsert_kv[k] ||= Hash.new
+            upsert_kv[k][v.to_s] ||= Hash.new
+            upsert_kv[k][v.to_s] = upsert_kv[k][v.to_s].deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert_kv[k][v.to_s].dup, true))
+          end
+          
+          upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
+
+          c = c + 1
+          if(c > 10000)
+            Moonshine::Barrel::Monthly.bulk_insert(upsert)
+            Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
+            upsert = {}
+            upsert_kv = {}
+            c = 0
+          end
+        end
+        Moonshine::Barrel::Monthly.bulk_insert(upsert)
+        Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
       end
 
       def self.reset

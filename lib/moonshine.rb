@@ -47,6 +47,7 @@ module Moonshine
 
   autoload :Barrel, 'moonshine/barrel'
   autoload :Monthly, 'moonshine/barrel/monthly'
+  autoload :Lifetime, 'moonshine/barrel/lifetime'
   autoload :Distillery, 'moonshine/distillery'
   autoload :Fermenter, 'moonshine/fermenter'
   autoload :Observer, 'moonshine/observer'
