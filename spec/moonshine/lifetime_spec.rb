@@ -59,6 +59,24 @@ describe Moonshine::Barrel::Lifetime do
           expect(Moonshine::Barrel::Lifetime.where('type' => type)
             .where({"fkey" => 'user_id', 'fval' => '5', "store_id.510.total" => 1000}).count).to eq(1)
       end
+
+      describe "#recompute" do
+        before do
+          Moonshine::Barrel::Lifetime.recompute
+        end
+
+        it "Barrel recomputes in bulk" do
+          type = send_data[:type]
+          expect(Moonshine::Barrel::Lifetime.where('type' => type)
+          .where({"fkey" => 'user_id', 'fval' => '5', "store_id.510._c" => 2}).count).to eq(1)
+        end
+
+        it "Barrel recomputes total in bulk" do
+          type = send_data[:type]
+          expect(Moonshine::Barrel::Lifetime.where('type' => type)
+          .where({"fkey" => 'user_id', 'fval' => '5', "store_id.510.total" => 1000}).count).to eq(1)
+        end
+      end
     end
 
   end

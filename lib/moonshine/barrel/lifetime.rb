@@ -21,7 +21,7 @@ module Moonshine
         upsert.each do |fkey, fvals|
           fvals.each do |fval, types|
             types.each do |type, u|
-              Moonshine::Barrel::Lifetime.collection.find({:type => types, :fkey => fkey, :fval =>fval}).upsert(u)
+              Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => fkey, :fval =>fval}).upsert(u)
             end
           end
         end
@@ -32,15 +32,15 @@ module Moonshine
         type = d['type']
         d['distinct'].each do |k, v|
           upsert[k] ||= Hash.new
-          upsert[k][v] ||= Hash.new
-          upsert[k][v][type] ||= Hash.new
+          upsert[k][v.to_s] ||= Hash.new
+          upsert[k][v.to_s][type] ||= Hash.new
           d['distinct'].each do |skey, sval|
-            upsert[k][v][type]["$inc"] ||= Hash.new
-            upsert[k][v][type]["$inc"]["#{skey}.#{val}._c"] ||= 1
+            upsert[k][v.to_s][type]["$inc"] ||= Hash.new
+            upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] ||= 0
+            upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] = upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] + 1
             d['summed'].each do |sumk, sumval|
-              upsert[k][v][type]["$inc"] ||= Hash.new
-              upsert[k][v][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] ||= 0
-              upsert[k][v][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] = upsert[type]["$inc"]["#{skey}.#{sval}.#{sumk}"] + sumval
+              upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] ||= 0
+              upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] = upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] + sumval
             end
           end
         end
