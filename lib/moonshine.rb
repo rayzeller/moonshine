@@ -174,14 +174,15 @@ module Moonshine
 
     def self.lifetime(type, fkey, fval, target_key)
       h = Hash.new
+      h['users'] = {}
       Moonshine::Barrel::Lifetime.where(:type => type).where({:fkey => fkey, :fval => fval}).each do |m|
         m[target_key].each do |id, data|
-          h[id] ||= Hash.new
+          h['users'][id] ||= Hash.new
           data.each do |k, val|
             if(k == '_c')
-              h[id]['count'] = val
+              h['users'][id]['count'] = val
             else
-              h[id][k] = val
+              h['users'][id][k] = val
             end
           end
         end

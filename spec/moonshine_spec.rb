@@ -55,10 +55,12 @@ describe Moonshine do
     it "returns lifetime data correctly" do
       options = {}
       Moonshine.bootleg(options.merge(:metric => 'lifetime', :type => 'order', :filter_key => 'ordered_from', :filter_value => 'xavier', :target => 'user_id')).should eq(
-        {"50" =>
-           { "count" => 2, 
-            "total" => 1000,
-            "whatever" => ['thirty','fifty']
+        {"users" => 
+            {"50" =>
+             { "count" => 2, 
+              "total" => 1000,
+              "whatever" => ['thirty','fifty']
+            }
           }
         })
     end
