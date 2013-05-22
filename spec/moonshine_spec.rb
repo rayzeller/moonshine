@@ -16,8 +16,8 @@ describe Moonshine do
 
     before do
       for i in 0..EVENTS.length-1
-        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i]}))
-        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i]}))
+        Moonshine.send(send_data.merge(:time => EVENTS[i], :data => {:whatever => 'thirty'}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i], :user_id => 50}))
+        Moonshine.send(send_data.merge(:time => EVENTS[1], :data => {:whatever => 'fifty'}, :summed => {:total => 500}, :distinct => {:ordered_from => DISTINCT_VALUES[i], :user_id => 50}))
       end
     end
 
@@ -52,6 +52,15 @@ describe Moonshine do
         )
     end
 
-
+    it "returns lifetime data correctly" do
+      options = {}
+      Moonshine.bootleg(options.merge(:metric => 'lifetime', :type => 'order', :filter_key => 'ordered_from', :filter_value => 'xavier', :target => 'user_id')).should eq(
+        {"50" =>
+           { "count" => 2, 
+            "total" => 1000,
+            "whatever" => ['thirty','fifty']
+          }
+        })
+    end
   end
 end

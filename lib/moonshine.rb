@@ -77,6 +77,7 @@ module Moonshine
     metric = options[:metric] ## sum, count
     fkey = options[:filter_key].nil? ? '' : options[:filter_key]
     fval = options[:filter_value].nil? ? '' : options[:filter_value]
+    target = options[:target].nil? ? '' : options[:target]
 
     groups = options[:groups].nil? ? {} : options[:groups]
 
@@ -84,6 +85,7 @@ module Moonshine
 
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
+    return lifetime(type, fkey, fval, target) if metric == 'lifetime'
     ## automatically precalculate date fields, include data field
 
     filters = options[:filters].nil? ? {}: options[:filters]
@@ -163,6 +165,23 @@ module Moonshine
               val.each do |key, data|
                 h[tag][day][key] = data if (key.in?(only) && !only.empty?)
               end
+            end
+          end
+        end
+      end
+      h
+    end
+
+    def self.lifetime(type, fkey, fval, target_key)
+      h = Hash.new
+      Moonshine::Barrel::Lifetime.where(:type => type).where({:fkey => fkey, :fval => fval}).each do |m|
+        m[target_key].each do |id, data|
+          h[id] ||= Hash.new
+          data.each do |k, val|
+            if(k == '_c')
+              h[id]['count'] = val
+            else
+              h[id][k] = val
             end
           end
         end

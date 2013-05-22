@@ -39,10 +39,10 @@ module Moonshine
             upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] ||= 0
             upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] = upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] + 1
             d['data'].each do |dkey, dval|
-              upsert[k][v.to_s][type]["$addToSet"] ||= Hash.new
-              upsert[k][v.to_s][type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"] ||= Hash.new
-              upsert[k][v.to_s][type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"] ||= []
-              upsert[k][v.to_s][type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"].push(dval) if !upsert[k][v.to_s][type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"].include?(dval)
+              upsert[k][v.to_s][type]["$push"] ||= Hash.new
+              upsert[k][v.to_s][type]["$push"]["#{skey}.#{sval}.#{dkey}"] ||= Hash.new
+              upsert[k][v.to_s][type]["$push"]["#{skey}.#{sval}.#{dkey}"]["$each"] ||= []
+              upsert[k][v.to_s][type]["$push"]["#{skey}.#{sval}.#{dkey}"]["$each"].push(dval)
             end
             d['summed'].each do |sumk, sumval|
               upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}.#{sumk}"] ||= 0
@@ -60,10 +60,8 @@ module Moonshine
           d['distinct'].each do |skey, sval|
             upsert[type]["$inc"] ||= Hash.new
             d['data'].each do |dkey, dval|
-              upsert[type]["$addToSet"] ||= Hash.new
-              upsert[type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"] ||= Hash.new
-              upsert[type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"] ||= []
-              upsert[type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"].push(dval) if !upsert[type]["$addToSet"]["#{skey}.#{sval}.#{dkey}"]["$each"].include?(dval)
+              upsert[type]["$push"] ||= Hash.new
+              upsert[type]["$push"]["#{skey}.#{sval}.#{dkey}"] = dval
             end
             upsert[type]["$inc"]["#{skey}.#{sval}._c"] ||= 1
             d['summed'].each do |sumk, sumval|
