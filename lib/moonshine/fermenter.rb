@@ -172,6 +172,7 @@ module Moonshine
       hash[:time] = time.utc
       hash[:type] = type
       hash[:tags] = tags
+      hash[:fid] = @object.id if @object.respond_to?(:id) ## auto-store fermented object's id
       hash
     end
 
