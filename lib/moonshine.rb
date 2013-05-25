@@ -71,7 +71,10 @@ module Moonshine
 
     type = options[:type]
     key = options[:key]
-
+    sort = options[:sort]
+    order = options[:order]
+    limit = options[:limit].present? ? options[:limit] : 50
+ 
     tags = options[:tags].present? ? options[:tags] : ['_all']
     ## distinct comes later
     metric = options[:metric] ## sum, count
@@ -82,10 +85,9 @@ module Moonshine
     groups = options[:groups].nil? ? {} : options[:groups]
 
     raise Exception if type.nil?
-
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
-    return lifetime(type, fkey, fval, target) if metric == 'lifetime'
+    return lifetime(type, fkey, fval, target, {:only => only, :limit => limit, :sort => sort, :order => order}) if metric == 'lifetime'
     ## automatically precalculate date fields, include data field
 
     filters = options[:filters].nil? ? {}: options[:filters]
@@ -172,19 +174,29 @@ module Moonshine
       h
     end
 
-    def self.lifetime(type, fkey, fval, target_key)
+    def self.lifetime(type, fkey, fval, target_key, options = {})
       h = Hash.new
       h['users'] = {}
-      Moonshine::Barrel::Lifetime.where(:type => type).where({:fkey => fkey, :fval => fval}).each do |m|
-        m[target_key].each do |id, data|
-          h['users'][id] ||= Hash.new
-          data.each do |k, val|
+      limit = (options[:limit])
+      only = (options[:only] || [])
+      sort = (options[:sort] || '1')
+      sort = sort == '1' ? "ASC" : "DESC"
+      order = (options[:order] || 'count')
+      order = '_c' if order == 'count'
+      h['users'] = []
+      Moonshine::Barrel::Lifetime.where(:type => type)
+      .where({:fkey => fkey, :fval => fval, :skey => target_key}).limit(limit)
+      .order_by("data.#{order} #{sort}").each do |m|
+        m['data'].each do |user|
+          tmp = {"id" => user['id']}
+          user.each do |k, val|
             if(k == '_c')
-              h['users'][id]['count'] = val
-            else
-              h['users'][id][k] = val
+              tmp['count'] = val
+            elsif(only.include?(k))
+              tmp[k] = val
             end
           end
+          h['users'].push(tmp) if tmp['count'].present?
         end
       end
       h

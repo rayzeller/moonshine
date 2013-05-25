@@ -6,6 +6,8 @@ module Moonshine
       field :type, :type => String
       field :fkey, :type => String
       field :fval, :type => String
+      field :data, :type => Array
+      field :skey, :type => String
 
       def self.hooks(fkey, fval, skey, sval, attributes)
         add_to_set = {}
@@ -27,6 +29,16 @@ module Moonshine
         end
       end
 
+      def self.insert(upsert)
+        upsert.each do |fkey, fvals|
+          fvals.each do |fval, types|
+            types.each do |type, u|
+              Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => fkey, :fval =>fval}).upsert(u)
+            end
+          end
+        end
+      end
+
 
       def self.bulk_log(d, upsert)
         type = d['type']
@@ -38,7 +50,7 @@ module Moonshine
             upsert[k][v.to_s][type]["$inc"] ||= Hash.new
             upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] ||= 0
             upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] = upsert[k][v.to_s][type]["$inc"]["#{skey}.#{sval}._c"] + 1
-            d['data'].each do |dkey, dval|
+            d["data"].each do |dkey, dval|
               upsert[k][v.to_s][type]["$push"] ||= Hash.new
               upsert[k][v.to_s][type]["$push"]["#{skey}.#{sval}.#{dkey}"] = dval
             end
@@ -56,19 +68,19 @@ module Moonshine
         upsert = {type => {}}
         d['distinct'].each do |k, v|
           d['distinct'].each do |skey, sval|
-            upsert[type]["$inc"] ||= Hash.new
-            d['data'].each do |dkey, dval|
-              upsert[type]["$push"] ||= Hash.new
-              upsert[type]["$push"]["#{skey}.#{sval}.#{dkey}"] = dval
+            upsert[type] = Hash.new
+            upsert[type]['$inc'] = Hash.new
+            upsert[type]["$push"] = Hash.new
+            upsert[type]["$inc"]["data.$._c"] = 1
+            d["data"].each do |dkey, dval|
+              upsert[type]["$push"]["data.$.#{dkey}"] = dval
             end
-            upsert[type]["$inc"]["#{skey}.#{sval}._c"] ||= 1
             d['summed'].each do |sumk, sumval|
-              upsert[type]["$inc"] ||= Hash.new
-              upsert[type]["$inc"]["#{skey}.#{sval}.#{sumk}"] ||= 0
-              upsert[type]["$inc"]["#{skey}.#{sval}.#{sumk}"] = upsert[type]["$inc"]["#{skey}.#{sval}.#{sumk}"] + sumval
+              upsert[type]["$inc"]["data.$.#{sumk}"] = sumval
             end
-            Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s}).upsert(upsert[type])
-          end          
+            Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).upsert({'$addToSet' => {"data" => {"id" => sval.to_s}}})
+            Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).upsert(upsert[type])
+          end
         end
       end
 
@@ -78,10 +90,11 @@ module Moonshine
         # c = 0
         Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
           # upsert = upsert.deep_merge(Moonshine::Barrel::Lifetime.bulk_log(d, upsert.dup))
+          Moonshine::Barrel::Lifetime.log_hit(d)
           
           # c = c + 1
           # if(c > 10000)
-            Moonshine::Barrel::Lifetime.bulk_insert(Moonshine::Barrel::Lifetime.bulk_log(d, {}))
+            # Moonshine::Barrel::Lifetime.bulk_insert(Moonshine::Barrel::Lifetime.bulk_log(d, {}))
             # upsert = {}
             # c = 0
           # end
@@ -89,7 +102,7 @@ module Moonshine
         # Moonshine::Barrel::Lifetime.bulk_insert(upsert)
       end
 
-      index ({"type" => 1, "fkey" => 1, "fval" => 1})
+      index ({"type" => 1, "fkey" => 1, "fval" => 1, "skey" => 1, "data.id" => 1})
       
     end
   end
