@@ -189,8 +189,7 @@ module Moonshine
       Moonshine::Barrel::Lifetime.where(:type => type)
       .where({:fkey => fkey, :fval => fval, :skey => target_key})
       .each do |m|
-      # .order_by("data.#{order} #{sort}")
-        m['data'].slice(offset,limit).each do |user|
+        m['data'].each do |user|
           tmp = {"id" => user['id']}
           user.each do |k, val|
             if(k == '_c')
