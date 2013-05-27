@@ -202,7 +202,7 @@ module Moonshine
         end
       end
       ##TODO : sort and slice via mongo
-      {'users' => users.sort_by{|u| -u['count']}.slice(offset,limit)}
+      {'users' => users.slice(offset,limit)}
     end
 
     def self.count_from_barrel(start_time, stop_time, type, tags)
