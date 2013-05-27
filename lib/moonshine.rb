@@ -185,7 +185,7 @@ module Moonshine
       offset = (options[:offset] || 0)
       # order = (options[:order] || 'count')
       # order = '_c' if order == 'count'
-      h['users'] = []
+      users = []
       Moonshine::Barrel::Lifetime.where(:type => type)
       .where({:fkey => fkey, :fval => fval, :skey => target_key})
       .each do |m|
@@ -199,10 +199,11 @@ module Moonshine
               tmp[k] = val
             end
           end
-          h['users'].push(tmp) if tmp['count'].present?
+          users.push(tmp) if tmp['count'].present?
         end
       end
-      h
+      ##TODO : sort and slice via mongo
+      {'users' => users.sort_by{|u| -u['count']}.slice(offset,limit)}
     end
 
     def self.count_from_barrel(start_time, stop_time, type, tags)
