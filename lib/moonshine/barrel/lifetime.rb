@@ -103,6 +103,7 @@ module Moonshine
       end
 
       index ({"type" => 1, "fkey" => 1, "fval" => 1, "skey" => 1, "data.id" => 1})
+      index ({"data._c" => -1})
       
     end
   end
