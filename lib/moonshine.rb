@@ -186,8 +186,8 @@ module Moonshine
       h['users'] = []
       Moonshine::Barrel::Lifetime.where(:type => type)
       .where({:fkey => fkey, :fval => fval, :skey => target_key})
-      .order_by("data.#{order} #{sort}").limit(limit).each do |m|
-        m['data'].each do |user|
+      .order_by("data.#{order} #{sort}").each do |m|
+        m['data'].first(limit).each do |user|
           tmp = {"id" => user['id']}
           user.each do |k, val|
             if(k == '_c')
