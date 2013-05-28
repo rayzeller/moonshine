@@ -185,21 +185,6 @@ module Moonshine
       # order = (options[:order] || 'count')
       # order = '_c' if order == 'count'
       users = []
-      # Moonshine::Barrel::Lifetime.where(:type => type)
-      # .where({:fkey => fkey, :fval => fval, :skey => target_key})
-      # .each do |m|
-      #   m['data'].each do |user|
-      #     tmp = {"id" => user['id']}
-      #     user.each do |k, val|
-      #       if(k == '_c')
-      #         tmp['count'] = val
-      #       elsif(only.include?(k))
-      #         tmp[k] = val
-      #       end
-      #     end
-      #     users.push(tmp) if tmp['count'].present?
-      #   end
-      # end
 
       only_hash = {}
       only_hash = {}
@@ -225,7 +210,7 @@ module Moonshine
       limit_hash = {'$limit' => limit}
       skip_hash = {'$skip' => offset}
      
-      result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,project_hash,sort_hash,group_hash,limit_hash,skip_hash])
+      result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,project_hash,sort_hash,group_hash,skip_hash,limit_hash])
       result
     end
 
