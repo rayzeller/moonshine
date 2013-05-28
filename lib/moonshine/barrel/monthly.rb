@@ -97,7 +97,7 @@ module Moonshine
           d['summed'].each do |k, val|
             upsert[tag][bom][type]["$inc"] ||= Hash.new
             upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] ||= 0
-            upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] + val
+            upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] = upsert[tag][bom][type]["$inc"]["day.#{day_number}.#{k}"] + val.to_f
           end
         end
         return upsert
