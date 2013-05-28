@@ -226,7 +226,7 @@ module Moonshine
       skip_hash = {'$skip' => offset}
      
       result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,project_hash,sort_hash,group_hash,limit_hash,skip_hash])
-      {'users' => result.map{|r| r['_id']} }
+      result
     end
 
     def self.count_from_barrel(start_time, stop_time, type, tags)
