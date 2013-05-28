@@ -72,23 +72,21 @@ module Moonshine
             upsert[type] = Hash.new
             upsert[type]['$inc'] = Hash.new
             upsert[type]["$push"] = Hash.new
-            add_to_set_vals["$set"] = Hash.new
-            add_to_set_vals["$set"]["data.id"] = sval.to_s
+            upsert[type]["$set"] = Hash.new
             upsert[type]["$inc"]["data._c"] = 1
+            upsert[type]["$set"]["data.id"] = sval.to_s
             add_to_set_vals["$inc"]["data._c"] = 1
             d["data"].each do |dkey, dval|
               upsert[type]["$push"]["data.#{dkey}"] = dval
-              add_to_set_vals["$push"]["data.#{dkey}"] = dval
             end
             d['summed'].each do |sumk, sumval|
-              add_to_set_vals["$inc"]["data.$.#{sumk}"] = sumval
               upsert[type]["$inc"]["data.#{sumk}"] = sumval
             end
             # if(!Moonshine::Barrel::Lifetime.where({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).exists?)
               # Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).upsert({'$addToSet' => {:data => {'id'=>sval.to_s}}})
               # Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).update(add_to_set_vals, {upsert: true})
             # else
-              Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).upsert(upsert[type])
+              Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).upsert(upsert[type])
             # end
           end
         end
