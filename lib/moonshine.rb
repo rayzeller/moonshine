@@ -177,11 +177,11 @@ module Moonshine
     def self.lifetime(type, fkey, fval, target_key, options = {})
       h = Hash.new
       h['users'] = {}
-      limit = (options[:limit])
+      limit = (options[:limit].to_i)
       only = (options[:only] || [])
       # sort = (options[:sort] || '1')
       # sort = sort == '1' ? "ASC" : "DESC"
-      offset = (options[:offset])
+      offset = (options[:offset].to_i)
       # order = (options[:order] || 'count')
       # order = '_c' if order == 'count'
       users = []
