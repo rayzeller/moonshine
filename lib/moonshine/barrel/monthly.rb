@@ -54,20 +54,17 @@ module Moonshine
 
         ## add ability to switch around timezones
         ## only logging stats for one or zero tags
-        tags = (d['tags'].nil? || d['tags'].empty?) ? ["_all"] : d['tags']
-        time = d['time'].in_time_zone("Pacific Time (US & Canada)")
-        type = d['type']
         upsert = {}
-        for tag in tags
-          upsert[tag] ||= {}
-          upsert[tag] = upsert[tag].deep_merge(Moonshine::Barrel::Monthly.hooks(tag, time, d['distinct'], d['summed']))
+        upsert_kv = {}
+        d['distinct'].each do |k,v|
+          upsert_kv[k] ||= Hash.new
+          upsert_kv[k][v.to_s] ||= Hash.new
+          upsert_kv[k][v.to_s] = upsert_kv[k][v.to_s].deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert_kv[k][v.to_s].dup, true))
         end
-        for tag in tags
-          d['distinct'].each do |k, v|
-            Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => k, :fval => v.to_s}).upsert(upsert[tag])
-          end
-          Moonshine::Barrel::Monthly.collection.find({:tag => tag, :time => time.beginning_of_month.utc, :type => type, :fkey => '', :fval => ''}).upsert(upsert[tag])
-        end
+        
+        upsert = upsert.deep_merge(Moonshine::Barrel::Monthly.bulk_log(d, upsert.dup))
+        Moonshine::Barrel::Monthly.bulk_insert(upsert)
+        Moonshine::Barrel::Monthly.bulk_insert_kv(upsert_kv)
       end
 
       def self.bulk_log(d, upsert, filter = false)
