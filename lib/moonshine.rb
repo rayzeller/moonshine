@@ -181,7 +181,7 @@ module Moonshine
       only = (options[:only] || [])
       # sort = (options[:sort] || '1')
       # sort = sort == '1' ? "ASC" : "DESC"
-      offset = (options[:offset] || 0)
+      offset = (options[:offset])
       # order = (options[:order] || 'count')
       # order = '_c' if order == 'count'
       users = []
@@ -225,7 +225,7 @@ module Moonshine
       limit_hash = {'$limit' => limit}
       skip_hash = {'$skip' => offset}
      
-      result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,sort_hash,project_hash,group_hash,limit_hash,skip_hash])
+      result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,project_hash,sort_hash,group_hash,limit_hash,skip_hash])
       {'users' => result.map{|r| r['_id']} }
     end
 
