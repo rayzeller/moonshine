@@ -68,18 +68,28 @@ module Moonshine
         upsert = {type => {}}
         d['distinct'].each do |k, v|
           d['distinct'].each do |skey, sval|
+            add_to_set_vals = {"$inc" => {}, "$push" => {}}
             upsert[type] = Hash.new
             upsert[type]['$inc'] = Hash.new
             upsert[type]["$push"] = Hash.new
-            upsert[type]["$inc"]["data.$._c"] = 1
+            add_to_set_vals["$set"] = Hash.new
+            add_to_set_vals["$set"]["data.id"] = sval.to_s
+            upsert[type]["$inc"]["data._c"] = 1
+            add_to_set_vals["$inc"]["data._c"] = 1
             d["data"].each do |dkey, dval|
-              upsert[type]["$push"]["data.$.#{dkey}"] = dval
+              upsert[type]["$push"]["data.#{dkey}"] = dval
+              add_to_set_vals["$push"]["data.#{dkey}"] = dval
             end
             d['summed'].each do |sumk, sumval|
-              upsert[type]["$inc"]["data.$.#{sumk}"] = sumval
+              add_to_set_vals["$inc"]["data.$.#{sumk}"] = sumval
+              upsert[type]["$inc"]["data.#{sumk}"] = sumval
             end
-            Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).upsert({'$addToSet' => {"data" => {"id" => sval.to_s}}})
-            Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).upsert(upsert[type])
+            # if(!Moonshine::Barrel::Lifetime.where({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).exists?)
+              # Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey}).upsert({'$addToSet' => {:data => {'id'=>sval.to_s}}})
+              # Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).update(add_to_set_vals, {upsert: true})
+            # else
+              Moonshine::Barrel::Lifetime.collection.find({:type => type, :fkey => k, :fval => v.to_s, :skey => skey, "data.id" => sval.to_s}).upsert(upsert[type])
+            # end
           end
         end
       end
@@ -87,7 +97,7 @@ module Moonshine
       def self.recompute
         Moonshine::Barrel::Lifetime.delete_all
         # upsert = {}
-        # c = 0
+        # c = 0f
         Moonshine::Distillery.where(:time.lte => Time.zone.now.utc).each do |d|
           # upsert = upsert.deep_merge(Moonshine::Barrel::Lifetime.bulk_log(d, upsert.dup))
           Moonshine::Barrel::Lifetime.log_hit(d)

@@ -132,7 +132,6 @@ module Moonshine
     opts.push(project_hash) if project_hash.present?
     opts.push(group_hash) if group_hash.present?
     opts.push(sort_hash) if sort_hash.present?
-    # puts opts
 
     hash = Distillery.collection.aggregate(opts)
     hash
@@ -186,23 +185,48 @@ module Moonshine
       # order = (options[:order] || 'count')
       # order = '_c' if order == 'count'
       users = []
-      Moonshine::Barrel::Lifetime.where(:type => type)
-      .where({:fkey => fkey, :fval => fval, :skey => target_key})
-      .each do |m|
-        m['data'].each do |user|
-          tmp = {"id" => user['id']}
-          user.each do |k, val|
-            if(k == '_c')
-              tmp['count'] = val
-            elsif(only.include?(k))
-              tmp[k] = val
-            end
-          end
-          users.push(tmp) if tmp['count'].present?
-        end
+      # Moonshine::Barrel::Lifetime.where(:type => type)
+      # .where({:fkey => fkey, :fval => fval, :skey => target_key})
+      # .each do |m|
+      #   m['data'].each do |user|
+      #     tmp = {"id" => user['id']}
+      #     user.each do |k, val|
+      #       if(k == '_c')
+      #         tmp['count'] = val
+      #       elsif(only.include?(k))
+      #         tmp[k] = val
+      #       end
+      #     end
+      #     users.push(tmp) if tmp['count'].present?
+      #   end
+      # end
+
+      only_hash = {}
+      only_hash = {}
+      group_hash = {'$group' => {'_id' => {}}}
+      only_hash['id'] = "$data.id"
+      only_hash['count'] = "$data._c"
+      group_hash['$group']['_id']['id'] = "$id"
+      group_hash['$group']['_id']['count'] = "$count"
+
+      only.each do |o| 
+        group_hash['$group']['_id']["#{o}"] = "$#{o}" if o != "count"
+        only_hash[o] = "$data.#{o}" if o != "count"
       end
-      ##TODO : sort and slice via mongo
-      {'users' => users.slice(offset,limit)}
+      project_hash = {"$project" => only_hash}
+      match_hash = {"$match" => {
+          'fkey' => fkey,
+          'fval' => fval,
+          'skey' => target_key,
+          'type' => type,
+        }
+      }
+      sort_hash = {'$sort' => {'count' => -1}}
+      limit_hash = {'$limit' => limit}
+      skip_hash = {'$skip' => offset}
+     
+      result =  Moonshine::Barrel::Lifetime.collection.aggregate([match_hash,sort_hash,project_hash,group_hash,limit_hash,skip_hash])
+      {'users' => result.map{|r| r['_id']} }
     end
 
     def self.count_from_barrel(start_time, stop_time, type, tags)

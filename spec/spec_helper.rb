@@ -108,6 +108,9 @@ ActiveRecord::Migration.create_table :refunds do |t|
   t.timestamps
 end
 
+Moonshine::Barrel::Lifetime.create_indexes
+Moonshine::Barrel::Monthly.create_indexes
+Moonshine::Distillery.create_indexes
 RSpec.configure do |config|
 
   config.before(:suite) do
