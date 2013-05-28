@@ -221,7 +221,7 @@ module Moonshine
           'type' => type,
         }
       }
-      sort_hash = {'$sort' => {'count' => -1}}
+      sort_hash = {'$sort' => {'count' => 1}}
       limit_hash = {'$limit' => limit}
       skip_hash = {'$skip' => offset}
      
