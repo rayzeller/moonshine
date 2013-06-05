@@ -77,6 +77,7 @@ module Moonshine
     offset = options[:offset].present? ? options[:offset] : 0
  
     tags = options[:tags].present? ? options[:tags] : ['_all']
+    tag = options[:tag].present? ? options[:tag] : '_all'
     ## distinct comes later
     metric = options[:metric] ## sum, count
     fkey = options[:filter_key].nil? ? '' : options[:filter_key]
@@ -88,6 +89,7 @@ module Moonshine
     raise Exception if type.nil?
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
+    return popular(start_time, stop_time, type, tag, only, fkey) if metric == 'popular'
     return lifetime(type, fkey, fval, target, {:only => only, :limit => limit, :offset => offset}) if metric == 'lifetime'
     ## automatically precalculate date fields, include data field
 
@@ -172,6 +174,29 @@ module Moonshine
         end
       end
       h
+    end
+
+    def self.popular(start_time, stop_time, type, tag, only, fkey)
+      tag = tag.nil? ? "_all" : tag
+      h = Hash.new
+
+      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type, :fkey => fkey, :fval.ne => "").each do |m|
+        time = m.time
+        fval = m.fval
+        m.day.each do |key, val|
+          day = (time+(key.to_i-1).days).utc
+          if (start_time.utc <= day && stop_time.utc >= day)
+            h[fval] ||= Hash.new
+            h[fval]['count'] = val['_c'].to_i
+            val.each do |key, data|
+              h[fval][key] = data if (key.in?(only) && !only.empty?)
+            end
+          end
+        end
+      end
+      h = Hash[h.sort_by{|key, value| -value['count']}]
+      h
+      ## eventually give limit
     end
 
     def self.lifetime(type, fkey, fval, target_key, options = {})

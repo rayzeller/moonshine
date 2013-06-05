@@ -65,5 +65,12 @@ describe Moonshine do
          
         )
     end
+
+    it "returns popular data correctly" do
+       options = {:start => JAN_1, :type => 'order'}
+      Moonshine.bootleg(options.merge(:metric => 'popular', :tag => 'real', :only => ['total'], :filter_key => 'ordered_from')).should eq(
+        {"shinaynay"=>{"count"=>2, "total"=>1000.0}, "xavier"=>{"count"=>1, "total"=>500.0}}
+        )
+    end
   end
 end

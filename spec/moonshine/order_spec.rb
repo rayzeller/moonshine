@@ -26,8 +26,7 @@ describe Order do
         tag = 'stupid'
         type = 'order'
         timestamp = order.created_at.in_time_zone("Pacific Time (US & Canada)")
-        day_of_month = timestamp.day
-        day_of_month = timestamp.day
+        day_of_month = Moonshine::Barrel::Monthly.two_digit_day(timestamp)
         expect(Moonshine::Barrel::Monthly.where('tag' => tag)
           .where('time' => timestamp.beginning_of_month.utc).where({:fkey => '', :fval => ''})
           .where("day.#{day_of_month}._c" => 1).count).to eq(1)
