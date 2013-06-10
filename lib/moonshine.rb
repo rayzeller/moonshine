@@ -89,7 +89,7 @@ module Moonshine
     raise Exception if type.nil?
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
-    return popular(start_time, stop_time, type, tag, only, fkey) if metric == 'popular'
+    return popular(start_time, stop_time, type, tag, fkey, {:only => only, :limit => limit, :offset => offset}) if metric == 'popular'
     return lifetime(type, fkey, fval, target, {:only => only, :limit => limit, :offset => offset}) if metric == 'lifetime'
     ## automatically precalculate date fields, include data field
 
@@ -176,9 +176,14 @@ module Moonshine
       h
     end
 
-    def self.popular(start_time, stop_time, type, tag, only, fkey)
+    def self.popular(start_time, stop_time, type, tag, fkey, options = {})
       tag = tag.nil? ? "_all" : tag
+      limit = (options[:limit].to_i)
+      only = (options[:only] || [])
+      offset = (options[:offset].to_i)
+
       h = Hash.new
+      h['stores'] = {}
 
       Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type, :fkey => fkey, :fval.ne => "").each do |m|
         time = m.time
@@ -186,17 +191,16 @@ module Moonshine
         m.day.each do |key, val|
           day = (time+(key.to_i-1).days).utc
           if (start_time.utc <= day && stop_time.utc >= day)
-            h[fval] ||= Hash.new
-            h[fval]['count'] = val['_c'].to_i
+            h['stores'][fval] ||= Hash.new
+            h['stores'][fval]['count'] = val['_c'].to_i
             val.each do |key, data|
-              h[fval][key] = data if (key.in?(only) && !only.empty?)
+              h['stores'][fval][key] = data if (key.in?(only) && !only.empty?)
             end
           end
         end
       end
-      h = Hash[h.sort_by{|key, value| -value['count']}]
+      h['stores'] = Hash[h['stores'].sort_by{|key, value| -value['count']}.slice!(offset,limit)]
       h
-      ## eventually give limit
     end
 
     def self.lifetime(type, fkey, fval, target_key, options = {})
