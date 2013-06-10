@@ -72,7 +72,7 @@ describe Moonshine do
         :tag => 'real',
         :only => ['total'],
         :filter_key => 'ordered_from')).should eq(
-        {"stores"=> {"shinaynay"=>{"count"=>2, "total"=>1000.0}, "xavier"=>{"count"=>1, "total"=>500.0}}})
+        {"stores"=> [{"_id"=>"shinaynay", "value"=>{"count"=>2.0, "total"=>1000.0}}, {"_id"=>"xavier", "value"=>{"count"=>2.0, "total"=>1000.0}}]})
     end
   end
 end

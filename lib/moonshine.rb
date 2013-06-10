@@ -89,7 +89,7 @@ module Moonshine
     raise Exception if type.nil?
     return count_from_barrel(start_time, stop_time, type, tags) if metric == 'count'
     return all_from_barrel(start_time, stop_time, type, tags, only, fkey, fval) if metric == 'all'
-    return popular(start_time, stop_time, type, tag, fkey, {:only => only, :limit => limit, :offset => offset}) if metric == 'popular'
+    return popular(start_time, type, tag, fkey, {:only => only, :limit => limit, :offset => offset}) if metric == 'popular'
     return lifetime(type, fkey, fval, target, {:only => only, :limit => limit, :offset => offset}) if metric == 'lifetime'
     ## automatically precalculate date fields, include data field
 
@@ -176,7 +176,7 @@ module Moonshine
       h
     end
 
-    def self.popular(start_time, stop_time, type, tag, fkey, options = {})
+    def self.popular(start_time, type, tag, fkey, options = {})
       tag = tag.nil? ? "_all" : tag
       limit = (options[:limit].to_i)
       only = (options[:only] || [])
@@ -185,21 +185,49 @@ module Moonshine
       h = Hash.new
       h['stores'] = {}
 
-      Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :time.lte => stop_time.beginning_of_month.utc, :tag => tag, :type => type, :fkey => fkey, :fval.ne => "").each do |m|
-        time = m.time
-        fval = m.fval
-        m.day.each do |key, val|
-          day = (time+(key.to_i-1).days).utc
-          if (start_time.utc <= day && stop_time.utc >= day)
-            h['stores'][fval] ||= Hash.new
-            h['stores'][fval]['count'] = val['_c'].to_i
-            val.each do |key, data|
-              h['stores'][fval][key] = data if (key.in?(only) && !only.empty?)
-            end
-          end
-        end
+      map = "
+        function() {
+          var count = 0;"
+      only.reject{|o| o=="count"}.each do |o|
+        map = "#{map}; var #{o}=0;"
       end
-      h['stores'] = Hash[h['stores'].sort_by{|key, value| -value['count']}.slice!(offset,limit)]
+      map = "#{map} for (var d in this.day){
+        count += this.day[d]._c;"
+      only.reject{|o| o=="count"}.each do |o|
+        map += "#{o} += this.day[d].#{o};"
+      end
+      map += "} 
+      emit(this.fval, { 
+              count: count"
+      only.reject{|o| o=="count"}.each do |o|
+        map = "#{map},#{o}: #{o}"
+      end
+      map +="
+              });
+          }
+      }"
+
+      reduce = "
+        function(key, values) {
+          var count = 0;"
+      only.reject{|o| o=="count"}.each do |o|
+        reduce = "#{reduce}; var #{o}=0;"
+      end
+      reduce+= "for ( var i=0; i< values.length; i++ ) {
+            count += values[i].count;"
+      only.reject{|o| o=="count"}.each do |o|
+        reduce += "#{o} += values[i].#{o};"
+      end      
+      reduce+="   }
+          return { count: count, "
+      only.reject{|o| o=="count"}.each do |o|
+        reduce += "#{o}: #{o},"
+      end  
+      reduce+="     };
+        }
+      }"
+
+      h['stores'] = Moonshine::Barrel::Monthly.where(:time.gte => start_time.beginning_of_month.utc, :tag => tag, :type => type, :fkey => fkey, :fval.ne => "").map_reduce(map,reduce).out(inline:true).sort_by {|p| -p['value']['count']}.slice(offset,limit)
       h
     end
 
