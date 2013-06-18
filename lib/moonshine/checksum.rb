@@ -55,7 +55,7 @@ module Moonshine
         f = self.fermenter
         
         ## start over if distillery has too many events
-        Distillery.where(:type => f.get_type).where(:time.gte => start, :time.lte => stop).delete_all if get_count(start,stop)
+        # Distillery.where(:type => f.get_type).where(:time.gte => start, :time.lte => stop).delete_all if get_count(start,stop)
 
         self.sent_to_moonshine(f.get_time.to_s, start, stop).find_each do |object|
           json = f.new(object).as_json
