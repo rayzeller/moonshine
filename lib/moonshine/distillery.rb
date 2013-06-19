@@ -10,6 +10,7 @@ module Moonshine
     field :summed, :type => Hash
     field :distinct, :type => Hash
     field :time, :type => DateTime
+    field :fid, :type => String
 
     after_create :hooks
 
@@ -53,6 +54,7 @@ module Moonshine
         hash[:time] = self.time
         hash[:type] = self.type
         hash[:tags] = self.tags
+        hash[:fid] = self.fid
 
         hash
       end

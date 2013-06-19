@@ -59,10 +59,7 @@ module Moonshine
 
         self.sent_to_moonshine(f.get_time.to_s, start, stop).find_each do |object|
           json = f.new(object).as_json
-          json.dup.each do |k, v|
-            json[k] = v.mongoize
-          end
-          Moonshine.send(json) if !Distillery.where(json).exists?
+          Moonshine.send(json) if !Distillery.where(:type => json['type'], :fid => json['fid']).exists?
         end
         return true
       end
