@@ -281,7 +281,7 @@ module Moonshine
           day = (time+(key.to_i-1).days).utc
           day = day+1.hour if (!day.in_time_zone("Pacific Time (US & Canada)").dst? && (day-1.day).in_time_zone("Pacific Time (US & Canada)").dst?)
           day = day-1.hour if (day.in_time_zone("Pacific Time (US & Canada)").dst? && !(day-1.day).in_time_zone("Pacific Time (US & Canada)").dst?)
-          count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc >= day)
+          count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc >= day and val['_c'])
         end
       end
       {"count" => count}
