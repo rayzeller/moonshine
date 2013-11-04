@@ -278,7 +278,7 @@ module Moonshine
         time = m.time
         
         m.day.each do |key, val|
-          day = (time+(key.to_i-1).days).utc
+          day = (time.in_time_zone("Pacific Time (US & Canada)")+(key.to_i-1).days).utc
           count = (count + val['_c']) if (start_time.utc <= day && stop_time.utc >= day)
         end
       end
