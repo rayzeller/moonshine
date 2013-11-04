@@ -5,6 +5,7 @@ module Moonshine
     index "time" => 1
     index "type" => 1
     index "tags" => 1
+    index "fid" => 1
     #cant index :data since it contains dynamic data so might need to move certain stuff to a different table
     field :data, :type => Hash
     field :summed, :type => Hash
