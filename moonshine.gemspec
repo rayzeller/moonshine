@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Moonshine::VERSION
 
-  gem.add_dependency "mongoid", "~> 3.1.3"
+  gem.add_dependency "mongoid", "~> 4.0"
   gem.add_dependency "deep_merge"
   gem.add_dependency "delayed_job"
   gem.add_development_dependency "rspec", "~>2.0"
